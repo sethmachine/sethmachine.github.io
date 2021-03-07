@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+  <meta charset="utf-8">
+  <meta name="author" content="zchengsite, 1451426471@qq.com" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  
+  
+  <title>Host Valheim with Docker   | Seth&#39;s blog</title>
+
+  
+    <link rel="apple-touch-icon" href="/images/icons8-espresso-cup-100 (1).png">
+    <link rel="icon" href="/images/icons8-espresso-cup-100 (1).png">
+  
+
+  <!-- Raleway-Font -->
+  <link href="https://fonts.googleapis.com/css?family=Raleway&display=swap" rel="stylesheet">
+
+  <!-- hexo site css -->
+  
+<link rel="stylesheet" href="/css/base.css">
+<link rel="stylesheet" href="/iconfont/iconfont.css">
+<link rel="stylesheet" href="/css/github-markdown.css">
+<link rel="stylesheet" href="/css/highlight.css">
+
+
+  <!-- jquery3.3.1 -->
+  <script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script>
+
+  <!-- fancybox -->
+  <link href="https://cdn.bootcss.com/fancybox/3.5.2/jquery.fancybox.min.css" rel="stylesheet">
+  <script async src="https://cdn.bootcss.com/fancybox/3.5.2/jquery.fancybox.min.js"></script>
+  
+<script src="/js/fancybox.js"></script>
+
+
+  
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-FG2L3F19SM"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-FG2L3F19SM');
+    </script>
+  
+
+<meta name="generator" content="Hexo 5.3.0"></head>
+
+
+  <body>
+    <div id="app">
+      <div class="header">
+  <div class="avatar">
+    <a href="/">
+      <!-- 头像取消懒加载，添加no-lazy -->
+      
+        <img src="/images/seth-datathon-square2.jpg" alt="">
+      
+    </a>
+    <div class="nickname"><a href="/">Seth Dworman</a></div>
+  </div>
+  <div class="navbar">
+    <ul>
+      
+        <li class="nav-item" data-path="/">
+          <a href="/">Blog</a>
+        </li>
+      
+        <li class="nav-item" data-path="/about/">
+          <a href="/about/">About</a>
+        </li>
+      
+        <li class="nav-item" data-path="/tags/">
+          <a href="/tags/">Tags</a>
+        </li>
+      
+    </ul>
+  </div>
+</div>
+
+
+<script src="/js/activeNav.js"></script>
+
+
+
+      <div class="flex-container">
+        <!-- 文章详情页，展示文章具体内容，url形式：https://yoursite/文章标题/ -->
+<!-- 同时为「标签tag」，「朋友friend」，「分类categories」，「关于about」页面的承载页面，具体展示取决于page.type -->
+
+
+
+
+
+
+
+
+
+
+  <!-- 文章内容页 url形式：https://yoursite/文章标题/ -->
+  <div class="container post-details" id="post-details">
+    <div class="post-content">
+      <div class="post-title">Host Valheim with Docker</div>
+      <div class="post-attach">
+        <span class="post-pubtime">
+          <i class="iconfont icon-updatetime" title="Update time"></i>
+          2021-02-11
+        </span>
+        
+          <span class="post-tags">
+                <i class="iconfont icon-tags" title="Tags"></i>
+            
+              <span class="span--tag">
+                  <a href="/tags/Docker/" title="Docker">
+                    <b>#</b> Docker
+                  </a>
+                </span>
+            
+              <span class="span--tag">
+                  <a href="/tags/Valheim/" title="Valheim">
+                    <b>#</b> Valheim
+                  </a>
+                </span>
+            
+              <span class="span--tag">
+                  <a href="/tags/Steam/" title="Steam">
+                    <b>#</b> Steam
+                  </a>
+                </span>
+            
+              <span class="span--tag">
+                  <a href="/tags/Port-Forwarding/" title="Port Forwarding">
+                    <b>#</b> Port Forwarding
+                  </a>
+                </span>
+            
+              <span class="span--tag">
+                  <a href="/tags/Dedicated-Server/" title="Dedicated Server">
+                    <b>#</b> Dedicated Server
+                  </a>
+                </span>
+            
+          </span>
+        
+      </div>
+      <div class="markdown-body">
+        <h2 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h2><p><img src="/2021/02/10/host-valheim-with-docker/valheim-dedicated-server-logo.jpg" alt="Valheim Dedicated Server with Docker"></p>
+<p>This guide explains how to host a dedicated Valheim server with Docker that can be run at home while still being publicly accessible over the internet so your friends can join anytime.  Ideally the server is hosted on a spare computer, but it can still run on the same computer you play on.   </p>
+<p>For those unfamiliar, <a target="_blank" rel="noopener" href="https://store.steampowered.com/app/892970/Valheim/">Valheim</a> is a builder-survival that is akin to Minecraft but much darker and focused on a Viking theme, which has gone viral with over 1 million purchases in its first weeks. Now is a better time than ever to start playing!</p>
+<p>If you’ve worked with Docker before and know what you’re doing, feel free to jump straight to using the image I built:</p>
+<ul>
+<li>Docker Hub: <a target="_blank" rel="noopener" href="https://hub.docker.com/r/sethmachineio/valheim-server">sethmachineio/valheim-server</a></li>
+<li>GitHub: <a target="_blank" rel="noopener" href="https://github.com/sethmachine/valheim-server-docker">valheim-server-docker</a></li>
+</ul>
+<h2 id="Why-host-your-own"><a href="#Why-host-your-own" class="headerlink" title="Why host your own?"></a>Why host your own?</h2><p>Valheim does have “peer-to-peer” hosting. But if the host logs off, then the world is no longer accessible to anyone and everyone else gets removed from the world. Hosting a dedicated Valheim server solves this by being accessible 24/7, so your friends can play even if you’re not online. This makes the experience all the more immersive.  </p>
+<p>Hosting at home also means a lot of cost savings. It’s already possible to rent a dedicated Valheim server for around <a target="_blank" rel="noopener" href="https://www.g-portal.com/us/en/gameserver/valheim-server-hosting?gclid=CjwKCAiA65iBBhB-EiwAW253Wwfyd6STzTQV4yvvwD_GBJHvuZDQkZNDuSTUMHexNYkIT_Z0zVPSDhoCzUkQAvD_BwE">$12/month</a>. However, I estimate my 2013 iMac would only cost around $7/month to run 24/7 (assuming the monitor is completely turned off). See: <a target="_blank" rel="noopener" href="https://support.apple.com/en-us/HT201918">iMac energy consumption</a> and <a target="_blank" rel="noopener" href="https://energyusecalculator.com/electricity_computer.htm#:~:text=We%20estimate%20that%20an%20average,not%20including%20the%20display%20screen.">Electricity usage of a Computer calculator</a>.  I used 100 watts as an estimate. That is a cost savings of over 40%!</p>
+<p>In summary:</p>
+<ul>
+<li>You want a dedicated server running 24/7.</li>
+<li>You want to save over 40% compared to renting a dedicated server (or buying compute from AWS/Google Cloud, etc.).</li>
+<li>You want to have fun on a mini project and learn about Docker/hosting.</li>
+</ul>
+<h2 id="About-Docker"><a href="#About-Docker" class="headerlink" title="About Docker"></a>About Docker</h2><p><a target="_blank" rel="noopener" href="https://www.docker.com/why-docker">Docker</a> allows for a repeatable and configurable process to manage running the Valheim server. Meaning if we ever need to update the server, we simply rebuild it in a single command with Docker. As a Docker container, the server can be run on any computer that also runs Docker. This means it’s easy to move the server to another computer if needed (e.g. more resources such as memory). Further, we can take advantage of Docker’s automatic restart policies, so the server will automatically turn back on if the host machine restarts.</p>
+<p>If you want to host on macOS, Docker is absolute requirement, as Valheim is only supported on Windows and Linux.  Using the steps in this guide I have been able to host my Valheim server on my 2013 iMac.  Note that playing the actual game must be done on Windows or Linux.     </p>
+<h2 id="Prerequisites"><a href="#Prerequisites" class="headerlink" title="Prerequisites"></a>Prerequisites</h2><ul>
+<li>You have access to the PC to run the server.</li>
+<li>You are comfortable using the terminal/command prompt.  </li>
+<li>You have admin access to your router/ISP so you can change firewall and port forwarding rules.</li>
+<li>The host machine is able to run Docker.  </li>
+<li>The host machine is able to run 24/7.  </li>
+</ul>
+<h2 id="Setup-Docker"><a href="#Setup-Docker" class="headerlink" title="Setup Docker"></a>Setup Docker</h2><p>Download and install <a target="_blank" rel="noopener" href="https://www.docker.com/products/docker-desktop">Docker Desktop</a> on the host machine. I installed it on macOS but same steps apply if you are using Windows or Linux. You may get prompted for a tutorial when starting Docker Desktop for the first time, feel free to complete it if you aren’t familiar with Docker.  </p>
+<p>Once installed, head to Docker’s preferences to change resources and restart policy. Make sure to check the checkbox “Start Docker Desktop when you log in”.    </p>
+<p><img src="/2021/02/10/host-valheim-with-docker/docker-restart-on-log-in.png"></p>
+<p>Change the amount of memory, CPUs, and disk space Docker is allocated.  Any running Docker containers won’t exceed the amounts here. If the host machine is just running the Valheim server, I’d recommend to allocate all available memory and CPUs to maximize performance. The disk image size constraints how much storage Docker can use before it “runs out”; I set mine to around 50 GB.  After making changes, hit “Apply and Restart” for it to take effect.   </p>
+<p><img src="/2021/02/10/host-valheim-with-docker/change-docker-memory-cpus.png"></p>
+<p>For next steps, we will be using Docker’s command line interface (CLI) called <code>docker</code>. The CLI is only available if Docker Desktop is running. To make sure it’s working, open a Terminal or Command Prompt and type in <code>docker ps</code>. You should see output similar to below.  </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sethmachine % docker ps</span><br><span class="line">CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES</span><br></pre></td></tr></table></figure>
+
+<h2 id="Run-Valheim-on-Docker"><a href="#Run-Valheim-on-Docker" class="headerlink" title="Run Valheim on Docker"></a>Run Valheim on Docker</h2><p>Now we need to download the Valheim server and somehow run it on Docker. Steam provides <a target="_blank" rel="noopener" href="https://developer.valvesoftware.com/wiki/SteamCMD">SteamCMD</a> which is a command-line interface of the Steam client. It can be used to programmatically download Steam games and servers. We will use it to download the Valheim server. Thankfully there is already an existing Docker image that comes with SteamCMD ready to use: <a target="_blank" rel="noopener" href="https://hub.docker.com/r/cm2network/steamcmd">cm2network/steamcmd</a>.  </p>
+<p>Download the Docker image:</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sethmachine % docker pull cm2network/steamcmd</span><br><span class="line">Using default tag: latest</span><br><span class="line">latest: Pulling from cm2network/steamcmd</span><br><span class="line">45b42c59be33: Pull complete </span><br><span class="line">a4d9e5a1b4b0: Pull complete </span><br><span class="line">Digest: sha256:0bd046d574a92bdd7a020beb9a8bc4ab8498d96422c005893316800d630a58c3</span><br><span class="line">Status: Downloaded newer image <span class="keyword">for</span> cm2network/steamcmd:latest</span><br><span class="line">docker.io/cm2network/steamcmd:latest</span><br></pre></td></tr></table></figure>
+
+<p>Next let’s run the image in interactive mode to make sure it works and see how we could run a Valheim server.  </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sethmachine % docker run -it --name=steamcmd cm2network/steamcmd</span><br><span class="line">steam@cf87295af3ac:~/steamcmd$ </span><br></pre></td></tr></table></figure>
+
+<p>You should notice your command prompt has changed.  We are now in the running Docker container in interactive mode. Some things to note:</p>
+<ul>
+<li>The Docker container will stop running if you exit (e.g. CTRL+D)</li>
+<li>While the container is running, use <code>docker ps</code> to find its container ID (host machine terminal)</li>
+<li>The running container is named <code>steamcmd</code> (from <code>--name=steamcmd</code>).  </li>
+<li>The same container can be re-activated by using <code>docker start --interactive steamcmd</code></li>
+<li>To delete the named container, use <code>docker rm steamcmd</code>.  </li>
+</ul>
+<p>With SteamCMD, we can now install the Valheim server. We need its ID which happens to be <code>896660</code>. I found this information on steamdb.com: <a target="_blank" rel="noopener" href="https://steamdb.info/app/896660/">Valheim Server</a>.  </p>
+<p>Run the following command to install the Valheim server in the running Docker container:</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">./steamcmd.sh +login anonymous \</span><br><span class="line">+force_install_dir valheimserver/ \</span><br><span class="line">+app_update 896660 \</span><br><span class="line">validate +<span class="built_in">exit</span> </span><br></pre></td></tr></table></figure>
+<p>After a minute you should see a message like “Success! App ‘896660’ fully installed.”</p>
+<p>In the current directory, there is now a <code>valheimserver/</code> folder:</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">steam@cf87295af3ac:~/steamcmd$ ls valheimserver/</span><br><span class="line"> LinuxPlayer_s.debug   UnityPlayer_s.debug                    linux64           start_server.sh         steam_appid.txt   steamclient.so          valheim_server_Data</span><br><span class="line"> UnityPlayer.so       &#x27;Valheim Dedicated Server Manual.pdf&#x27;   server_exit.drp   start_server_xterm.sh   steamapps         valheim_server.x86_64</span><br></pre></td></tr></table></figure>
+<p>The server install includes a manual which I’ve also made available here: <a href="/misc/valheim-dedicated-server-manual.pdf">Valheim Dedicated Server Manual</a> (disclaimer: the manual is subject to change so this link may become outdated). The manual explains how to run the Valheim server and its different configurable options.  Below is the command I used to copy the manual from the running Docker container. This command is run from the host machine’s terminal and not within the Docker container.  </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">docker cp steamcmd:/home/steam/steamcmd/valheimserver/<span class="string">&#x27;Valheim Dedicated Server Manual.pdf&#x27;</span> ~/desktop</span><br></pre></td></tr></table></figure>
+<p>According to the manual, we should make a copy of <code>start_server.sh</code> and supply it with our parameters. The line to edit:</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">./valheim_server.x86_64 -name &quot;My server&quot; -port 2456 -world &quot;Dedicated&quot; -password &quot;secret&quot;</span><br></pre></td></tr></table></figure>
+<p>The parameters (also explained in the manual):</p>
+<ul>
+<li><code>-name</code>: the name of the server that will appear in the server list</li>
+<li><code>-port</code>: the port the server will run on.  Keep the default as <code>2456</code>.  </li>
+<li><code>-world</code>: the name of the World that will be created, or the existing World to use.  </li>
+<li><code>-password</code>: the password to enter the server.  Must be at least 5 characters.  </li>
+<li><code>-savedir</code>: where the server loads and saves the World data (not in the example as it is optional)</li>
+</ul>
+<p>To create and edit a copy of <code>start_server.sh</code>:</p>
+<ul>
+<li>Copy with <code>cp start_server.sh example-start-server.sh</code> then edit with <code>nano</code> (while in the Docker container). </li>
+<li>Or, copy the file to the host machine, edit it there, and then copy it back to Docker<ul>
+<li>Copy file to host machine to desktop: <code>docker cp steamcmd:/home/steam/steamcmd/valheimserver/start_server.sh ~/desktop</code></li>
+<li>Edit and save as <code>example-start-server.sh</code>.  </li>
+<li>Copy back to the Docker container: <code>docker cp example-start-server.sh steamcmd:/home/steam/steamcmd/valheimserver</code></li>
+</ul>
+</li>
+</ul>
+<p>After editing this is what my <code>example-start-server.sh</code> looks like (I removed the comments):</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">export</span> templdpath=<span class="variable">$LD_LIBRARY_PATH</span></span><br><span class="line"><span class="built_in">export</span> LD_LIBRARY_PATH=./linux64:<span class="variable">$LD_LIBRARY_PATH</span></span><br><span class="line"><span class="built_in">export</span> SteamAppId=892970</span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;Starting server PRESS CTRL-C to exit&quot;</span></span><br><span class="line"></span><br><span class="line">./valheim_server.x86_64 -name <span class="string">&quot;Example Server&quot;</span> -port 2456 -world <span class="string">&quot;HelloWorld&quot;</span> -password <span class="string">&quot;password123&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">export</span> LD_LIBRARY_PATH=<span class="variable">$templdpath</span></span><br></pre></td></tr></table></figure>
+<p>Now run it by entering <code>./example-start-server.sh</code> in the Docker container. It should spit out a lot of different debug output. Of interest is it prints the world seed generated (since we did not use the <code>-savedir</code> parameter to an existing world).  </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">02/13/2021 03:09:44: Initializing world generator seed:85nRPRACxA ( -1305926156 )   menu:False  worldgen version:1</span><br></pre></td></tr></table></figure>
+<p>We can also see where the generated world is stored by default (according to the manual):</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">steam@109e3304d5f3:~/steamcmd/valheimserver$ ls ~/.config/unity3d/IronGate/Valheim/</span><br><span class="line">adminlist.txt  bannedlist.txt  permittedlist.txt  prefs  worlds</span><br><span class="line">steam@109e3304d5f3:~/steamcmd/valheimserver$ ls ~/.config/unity3d/IronGate/Valheim/worlds</span><br><span class="line">HelloWorld.db  HelloWorld.fwl</span><br></pre></td></tr></table></figure>
+<p>Press CTRL+C to stop the server from running.   </p>
+<p>Congrats!  If you’ve got this far, it means you can now run a Valheim server on Docker!  There are a few more steps to consolidate what we’ve learned and then we have to open ports before your dedicated at home server is ready.</p>
+<h2 id="Create-a-Docker-image"><a href="#Create-a-Docker-image" class="headerlink" title="Create a Docker image"></a>Create a Docker image</h2><p>We did a bit of work in the previous steps and it’d be nice to avoid having to repeat it. Luckily, Docker provides <a target="_blank" rel="noopener" href="https://docs.docker.com/develop/develop-images/dockerfile_best-practices/">Dockerfiles</a>, which can be used to build new Docker images from existing Docker images. Our goal here is to make a new Docker image that automatically starts the Valheim server without having to enter the container and manually enter commands as we did before. The Valheim server also needs to be shutdown gracefully so that current world data is properly saved whenever the container is stopped or restarted.  </p>
+<p>The Valheim server Docker image should be as generic as possible while allowing a user to customize server specific behavior at runtime (e.g. which world to use, what the password is, etc.). The strategy to do this is to separate the environment and installation setup from the actual command to start the server. This means we will write a custom script to start the Valheim server that controls how the server is started and shutdown. The Valheim server also needs to persist the worlds data into the host machine (as the containers are meant to be ephemeral). Persistence is accomplished by <a target="_blank" rel="noopener" href="https://docs.docker.com/storage/bind-mounts/">binding a directory from the host machine to a Docker volume</a> (this is also how we can add existing worlds to the server).  </p>
+<p>Given all that, here is our Dockerfile to build the Valheim server image:</p>
+<figure class="highlight dockerfile"><table><tr><td class="code"><pre><span class="line"><span class="keyword">FROM</span> cm2network/steamcmd</span><br><span class="line"></span><br><span class="line"><span class="comment"># where the Valheim server is installed to</span></span><br><span class="line"><span class="keyword">ENV</span> VALHEIM_SERVER_DIR <span class="string">&quot;/home/steam/valheim-server&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># install the Valheim server</span></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> ./steamcmd.sh +login anonymous \</span></span><br><span class="line"><span class="bash">+force_install_dir <span class="variable">$VALHEIM_SERVER_DIR</span> \</span></span><br><span class="line"><span class="bash">+app_update 896660 \</span></span><br><span class="line"><span class="bash">validate +<span class="built_in">exit</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment"># where world data is stored, map this to the host directory where your worlds are stored</span></span><br><span class="line"><span class="comment"># e.g. docker run -v /path/to/host/directory:/home/steam/valheim-data</span></span><br><span class="line"><span class="keyword">ENV</span> VALHEIM_DATA_DIR <span class="string">&quot;/home/steam/valheim-data&quot;</span></span><br><span class="line"><span class="comment"># don&#x27;t change the port unless you know what you are doing</span></span><br><span class="line"><span class="keyword">ENV</span> VALHEIM_PORT <span class="number">2456</span></span><br><span class="line"><span class="comment"># server and world name are truncated after 1st white space</span></span><br><span class="line"><span class="comment"># you must set values to the server and world name otherwise the container will exit immediately</span></span><br><span class="line"><span class="keyword">ENV</span> VALHEIM_SERVER_NAME=<span class="string">&quot;&quot;</span></span><br><span class="line"><span class="keyword">ENV</span> VALHEIM_WORLD_NAME=<span class="string">&quot;&quot;</span></span><br><span class="line"><span class="keyword">ENV</span> VALHEIM_PASSWORD <span class="string">&quot;password&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># the server needs these 3 ports exposed by default</span></span><br><span class="line"><span class="keyword">EXPOSE</span> <span class="number">2456</span>/udp</span><br><span class="line"><span class="keyword">EXPOSE</span> <span class="number">2457</span>/udp</span><br><span class="line"><span class="keyword">EXPOSE</span> <span class="number">2458</span>/udp</span><br><span class="line"></span><br><span class="line"><span class="keyword">VOLUME</span><span class="bash"> <span class="variable">$&#123;VALHEIM_DATA_DIR&#125;</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment"># copy over the modified server start script</span></span><br><span class="line"><span class="keyword">COPY</span><span class="bash"> start-valheim-server.sh <span class="variable">$&#123;VALHEIM_SERVER_DIR&#125;</span></span></span><br><span class="line"><span class="keyword">WORKDIR</span><span class="bash"> <span class="variable">$&#123;VALHEIM_SERVER_DIR&#125;</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment"># start the server!</span></span><br><span class="line"><span class="keyword">ENTRYPOINT</span><span class="bash"> [<span class="string">&quot;./start-valheim-server.sh&quot;</span>]</span></span><br></pre></td></tr></table></figure>
+<p>I added comments to explain each part of this new Dockerfile for building a Valheim server image. Of note is that behavior is customized by passing in different values for the environment variables, e.g. one could change the world name by passing in <code>--env VALHEIM_WORLD_NAME=&quot;AWholeNewWorld&quot;</code> when executing <code>docker run</code>.  </p>
+<p>What does our <code>start-valheim-server.sh</code> look like?  Below is what I’ve come up with:</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="meta">#!/usr/bin/env bash</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># docker sends a SIGTERM and then SIGKILL to the main process</span></span><br><span class="line"><span class="comment"># Valheim needs a SIGINT (CTRL+C) to terminate properly</span></span><br><span class="line"><span class="keyword">function</span> shutdownValheimGracefully()</span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;Valheim server PID is: <span class="variable">$1</span>&quot;</span></span><br><span class="line">    <span class="comment"># send a SIGINT to shut down the Valheim server gracefully</span></span><br><span class="line">    <span class="built_in">kill</span> -2 <span class="variable">$1</span></span><br><span class="line">    <span class="comment"># wait for Valheim to terminate before shutting down the container</span></span><br><span class="line">    <span class="built_in">wait</span> <span class="variable">$1</span></span><br><span class="line">    <span class="built_in">exit</span> 0</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># catch Docker&#x27;s SIGTERM, then then a SIGINT to the Valheim server process</span></span><br><span class="line"><span class="built_in">trap</span> <span class="string">&#x27;shutdownValheimGracefully &quot;$VALHEIM_PID&quot;&#x27;</span> SIGTERM</span><br><span class="line"></span><br><span class="line"><span class="built_in">export</span> templdpath=<span class="variable">$LD_LIBRARY_PATH</span></span><br><span class="line"><span class="built_in">export</span> LD_LIBRARY_PATH=./linux64:<span class="variable">$LD_LIBRARY_PATH</span></span><br><span class="line"><span class="built_in">export</span> SteamAppId=892970</span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;Starting server PRESS CTRL-C to exit&quot;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;LD_LIBRARY_PATH: <span class="variable">$LD_LIBRARY_PATH</span>&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;Valheim port is: <span class="variable">$VALHEIM_PORT</span>&quot;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;Valheim server name is: <span class="variable">$VALHEIM_SERVER_NAME</span>&quot;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;Valheim world name is: <span class="variable">$VALHEIM_WORLD_NAME</span>&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">cd</span> <span class="variable">$VALHEIM_SERVER_DIR</span></span><br><span class="line"><span class="comment"># start the server as a background process to get its PID (&quot;&amp;&quot; at end of command)</span></span><br><span class="line"><span class="comment"># &quot;&amp;&gt;&gt;&quot; means append all stdout and stderr to the log file</span></span><br><span class="line">./valheim_server.x86_64 -name <span class="variable">$VALHEIM_SERVER_NAME</span> \</span><br><span class="line">-port <span class="variable">$VALHEIM_PORT</span> \</span><br><span class="line">-world <span class="variable">$VALHEIM_WORLD_NAME</span> \</span><br><span class="line">-password <span class="variable">$VALHEIM_PASSWORD</span> \</span><br><span class="line">-savedir <span class="variable">$VALHEIM_DATA_DIR</span> &amp;&gt;&gt; /home/steam/valheim-data/valheim-logs.txt &amp;</span><br><span class="line">VALHEIM_PID=$!</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;Valheim server PID is: <span class="variable">$VALHEIM_PID</span>&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># since the server is run in the background, this is needed to keep the main process from exiting</span></span><br><span class="line"><span class="keyword">while</span> <span class="built_in">wait</span> $!; [ $? != 0 ]; <span class="keyword">do</span> <span class="literal">true</span>; <span class="keyword">done</span></span><br></pre></td></tr></table></figure>
+<p>This script is mostly a copy of the original <code>start_server.sh</code> script that comes with Valheim server installation.  I’ve added comments to explain some of the changes made to accommodate running the server in Docker. Most importantly is providing a graceful shutdown to the running Valheim server, which needs a <code>SIGINT</code> signal to properly terminate (equivalent to hitting CTRL+C when running the server manually). Docker sends a <code>SIGTERM</code> signal by default. This script traps the <code>SIGTERM</code> signal, and then sends a <code>SIGINT</code> signal to the Valheim server process (the <code>kill -2</code> command) before exiting properly.  Without this behavior, the server would not terminate properly and thus world data would not be saved completely. For more background on why this is necessary, see this wonderful article: <a target="_blank" rel="noopener" href="https://www.ctl.io/developers/blog/post/gracefully-stopping-docker-containers/">Gracefully Stopping Docker Containers</a>.  </p>
+<p>To build our image, create a new directory on the host machine and create two files in it called <code>Dockerfile</code> and <code>start-valheim-server.sh</code>. <code>Dockerfile</code> should be exactly the contents of the Dockerfile I provided above, and likewise for the custom start script. Note the file to build the Docker image <strong>must</strong> be named <code>Dockerfile</code>. On the host terminal, enter the directory and build the new image using <a target="_blank" rel="noopener" href="https://docs.docker.com/engine/reference/commandline/build/">docker build</a>:</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sethmachine docker % <span class="built_in">pwd</span></span><br><span class="line">/home/sethmachine/valheim/docker</span><br><span class="line">sethmachine docker % ls</span><br><span class="line">Dockerfile              start-valheim-server.sh</span><br><span class="line">sethmachine docker % docker build -t sethmachine/valheim-server .</span><br><span class="line">[+] Building 0.2s (10/10) FINISHED                                                                                                                                          </span><br><span class="line"> =&gt; [internal] load build definition from Dockerfile                                                                                                                   0.0s</span><br><span class="line"> =&gt; =&gt; transferring dockerfile: 1.15kB                                                                                                                                 0.0s</span><br><span class="line"> =&gt; [internal] load .dockerignore                                                                                                                                      0.0s</span><br><span class="line"> =&gt; =&gt; transferring context: 2B                                                                                                                                        0.0s</span><br><span class="line"> =&gt; [internal] load metadata <span class="keyword">for</span> docker.io/cm2network/steamcmd:latest                                                                                                  0.0s</span><br><span class="line"> =&gt; [1/5] FROM docker.io/cm2network/steamcmd                                                                                                                           0.0s</span><br><span class="line"> =&gt; [internal] load build context                                                                                                                                      0.0s</span><br><span class="line"> =&gt; =&gt; transferring context: 1.03kB                                                                                                                                    0.0s</span><br><span class="line"> =&gt; CACHED [2/5] RUN ./steamcmd.sh +login anonymous +force_install_dir /home/steam/valheim-server +app_update 896660 validate +<span class="built_in">exit</span>                                    0.0s</span><br><span class="line"> =&gt; CACHED [3/5] RUN apt-get update &amp;&amp; apt-get install -y procps                                                                                                       0.0s</span><br><span class="line"> =&gt; [4/5] COPY start-valheim-server.sh /home/steam/valheim-server                                                                                                      0.0s</span><br><span class="line"> =&gt; [5/5] WORKDIR /home/steam/valheim-server                                                                                                                           0.0s</span><br><span class="line"> =&gt; exporting to image                                                                                                                                                 0.0s</span><br><span class="line"> =&gt; =&gt; exporting layers                                                                                                                                                0.0s</span><br><span class="line"> =&gt; =&gt; writing image sha256:da020f90db05f93dfbcd9f0a2489cb5bcaa6baf9ac2bf9a84a37511c47384972                                                                           0.0s</span><br><span class="line"> =&gt; =&gt; naming to docker.io/sethmachine/valheim-server                                                                                                                   0.0s </span><br></pre></td></tr></table></figure>
+<p><em>Note that rebuilding the image will re-use previous layers, including the version of the Valheim server downloaded.  This is both good and bad.  Good because it makes re-building the image very quick.  But it is bad if Valheim has updated the server and Docker’s cache has gone stale.  In that case, add the <code>--no-cache</code> argument when rebuilding if Valheim has been updated.</em></p>
+<p>The new image should now show up when running <code>docker image ls</code>:</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sethmachine % docker image ls | grep <span class="string">&quot;valheim&quot;</span></span><br><span class="line">sethmachine/valheim-server   latest    da020f90db05   5 minutes ago       1.71GB</span><br></pre></td></tr></table></figure>
+<p>Congrats, we have built a Valheim server Docker image!  Now we need to run it as a container.    </p>
+<h2 id="Run-the-valheim-server-image"><a href="#Run-the-valheim-server-image" class="headerlink" title="Run the valheim-server image"></a>Run the valheim-server image</h2><p>To run the Valheim server image, we need to decide where Valheim’s worlds data will be stored on the host machine, and then pass in parameters to decide the name, password, and world of the server.  </p>
+<p>The image volume <code>/home/steam/valheim-data</code> needs to be bound to a directory on the host machine where all worlds data is persisted. The host machine directory should be empty or contain a subdirectory called <code>worlds</code> which can contain already created Valheim worlds. When the Valheim server runs, if the world does not exist in the host directory, then it will be created anew. If the world already does exist (i.e. there are files in the <code>worlds</code> subdirectory with the name of the world), then the server will use it as the server’s world rather than making a new one. </p>
+<p>On my host machine, I have a directory at <code>/home/sethmachine/valeim-data</code> which I will map onto the image’s volume.  Here is what it looks like before I run the Valhem server and make a new world:</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sethmachine valheim-server-docker % tree /home/sethmachine/valeim-data</span><br><span class="line">/home/sethmachine/valeim-data</span><br><span class="line">└── worlds</span><br><span class="line">    ├── OldWorld.db</span><br><span class="line">    └── OldWorld.fwl</span><br><span class="line"></span><br><span class="line">1 directory, 2 files</span><br></pre></td></tr></table></figure>
+<p>(<a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Tree_(command)">tree</a> is a helpful command to visualize a directory)</p>
+<p>This folder already has an existing world that I copied over, <code>OldWorld</code>, but your folder can be completely empty.  </p>
+<p>There are 3 parameters to set when running the server.  The server name and world name <strong>must</strong> be provided at runtime, otherwise the container will exit immediately.  </p>
+<ul>
+<li><code>VALHEIM_SERVER_NAME</code>: the name that will appear in Valheim’s server list, truncated at first whitespace</li>
+<li><code>VALHEIM_WORLD_NAME</code>: the name of the Valheim world (can be an existing world), truncated at first whitespace</li>
+<li><code>VALHEIM_PASSWORD</code>: the password to join the server (can be set to empty for no password, default is “password”)</li>
+</ul>
+<p>Below is an example command that runs a Valheim server with the host directory set to <code>/home/sethmachine/valeim-data</code>.  Note this container is named <code>valheim</code> to make it easier to reference with Docker commands.  </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">docker run --name=valheim -d \</span><br><span class="line">-p 2456:2456/udp -p 2457:2457/udp -p 2458:2458/udp \</span><br><span class="line">-v /home/sethmachine/valeim-data:/home/steam/valheim-data \</span><br><span class="line">--env VALHEIM_SERVER_NAME=<span class="string">&quot;sethmachine&#x27;sServer&quot;</span> \</span><br><span class="line">--env VALHEIM_WORLD_NAME=<span class="string">&quot;AWholeNewWorld&quot;</span> \</span><br><span class="line">--env VALHEIM_PASSWORD=<span class="string">&quot;HardToGuessPassword&quot;</span> \</span><br><span class="line">sethmachine/valheim-server</span><br></pre></td></tr></table></figure>
+<p>Explanation:</p>
+<ul>
+<li><code>docker run</code>: creates a running container from an image, in this case the image is <code>sethmachine/valheim-server</code></li>
+<li><code>-d</code>: runs the container in the background</li>
+<li><code>-p 2456:2456/udp -p 2457:2457/udp -p 2458:2458/udp</code>: exposes and maps ports 2456, 2457, 2458 on the host to the container </li>
+<li><code>--env VALHEIM_SERVER_NAME=&quot;sethmachine&#39;sServer&quot;</code>: sets the server’s name</li>
+<li><code>--env VALHEIM_WORLD_NAME=&quot;AWholeNewWorld&quot;</code>: sets the world’s name</li>
+<li><code>--env VALHEIM_PASSWORD=&quot;HardToGuessPassword&quot;</code>: sets the server’s password</li>
+</ul>
+<p>Use <code>docker container ls</code> to confirm the server is running:</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sethmachine valheim-server-docker % docker container ls</span><br><span class="line">CONTAINER ID   IMAGE                        COMMAND                  CREATED          STATUS          PORTS           NAMES</span><br><span class="line">db70c7b20af7   sethmachine/valheim-server   <span class="string">&quot;./start-valheim-ser…&quot;</span>   10 minutes ago   Up 10 minutes   2456-2458/udp   valheim</span><br></pre></td></tr></table></figure>
+<p>Use <code>docker logs valheim</code> to get output information about the server:</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sethmachine valheim-server-docker % docker logs valheim</span><br><span class="line">Starting server PRESS CTRL-C to <span class="built_in">exit</span></span><br><span class="line">LD_LIBRARY_PATH: ./linux64:</span><br><span class="line">Valheim port is: 2456</span><br><span class="line">Valheim server name is: sethmachine<span class="string">&#x27;sServer</span></span><br><span class="line"><span class="string">Valheim world name is: AWholeNewWorld</span></span><br><span class="line"><span class="string">Valheim server PID is: 7</span></span><br></pre></td></tr></table></figure>
+<p>Under the mounted host directory (mine is <code>/home/sethmachine/valeim-data</code>), there should be several files and a “worlds” subdirectory:</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sethmachine valheim-server-docker % tree /home/sethmachine/valeim-data</span><br><span class="line">/home/sethmachine/valeim-data</span><br><span class="line">├── AWholeNewWorld-logs.txt</span><br><span class="line">├── adminlist.txt</span><br><span class="line">├── bannedlist.txt</span><br><span class="line">├── permittedlist.txt</span><br><span class="line">└── worlds</span><br><span class="line">    ├── AWholeNewWorld.fwl</span><br><span class="line">    ├── OldWorld.db</span><br><span class="line">    └── OldWorld.fwl</span><br><span class="line"></span><br><span class="line">1 directory, 7 files</span><br></pre></td></tr></table></figure>
+<p>What each of these files mean:</p>
+<ul>
+<li><code>AWholeNewWorld-logs.txt</code>: this is a Valheim specific log file for the world we created</li>
+<li><code>adminlist.txt</code>: determines who is an admin (add Steam ID, one per line)</li>
+<li><code>bannedlist.txt</code>: automatically bans players (add Steam ID, one per line)</li>
+<li><code>permittedlist.txt</code>: whitelist for who can join (add Steam ID, one per line).  Note if this has a single Steam ID in it, this will ban everyone else from the server besides players whose Steam ID is in this list.</li>
+<li><code>worlds</code>: directory where Valheim worlds data is stored (including old or already existing worlds)</li>
+</ul>
+<p>If you’ve seen similar output on your end, then congrats, you are able to run the Valheim server Docker image!</p>
+<p>To stop the server, use <code>docker stop valheim</code>.  This will create a new database (<code>.db</code>) file for the world as well:</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sethmachine valheim-server-docker % docker stop valheim</span><br><span class="line">valheim</span><br><span class="line">sethmachine valheim-server-docker % tree /home/sethmachine/valeim-data</span><br><span class="line">/home/sethmachine/valeim-data</span><br><span class="line">├── AWholeNewWorld-logs.txt</span><br><span class="line">├── adminlist.txt</span><br><span class="line">├── bannedlist.txt</span><br><span class="line">├── permittedlist.txt</span><br><span class="line">└── worlds</span><br><span class="line">    ├── AWholeNewWorld.db</span><br><span class="line">    ├── AWholeNewWorld.fwl</span><br><span class="line">    ├── OldWorld.db</span><br><span class="line">    └── OldWorld.fwl</span><br><span class="line"></span><br><span class="line">1 directory, 8 files</span><br></pre></td></tr></table></figure>
+<p>Note the new <code>AWholeNewWorld.db</code> file.  This contains the save data of the world; because it has been created, we know the Valheim server shut down properly.   </p>
+<p>For the server to be up almost 24/7 we will want it to restart automatically whenever it is turned off (e.g. the host machine restarts or the Docker container somehow crashes, is killed, etc.).  To do this, we specify a <a target="_blank" rel="noopener" href="https://docs.docker.com/config/containers/start-containers-automatically/">restart policy</a> when running the container.  The <code>always</code> policy appears appropriate, as it means the server will automatically run whenever Docker restarts.  Only manually stopping the server with <code>docker stop</code> will prevent it from automatically restarting.  Finally, this gives us a suitable command to begin running our server indefinitely!</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">docker run --name=valheim -d \</span><br><span class="line">--restart always \</span><br><span class="line">-p 2456:2456/udp -p 2457:2457/udp -p 2458:2458/udp \</span><br><span class="line">-v /home/sethmachine/valeim-data:/home/steam/valheim-data \</span><br><span class="line">--env VALHEIM_SERVER_NAME=<span class="string">&quot;sethmachine&#x27;sServer&quot;</span> \</span><br><span class="line">--env VALHEIM_WORLD_NAME=<span class="string">&quot;AWholeNewWorld&quot;</span> \</span><br><span class="line">--env VALHEIM_PASSWORD=<span class="string">&quot;HardToGuessPassword&quot;</span> \</span><br><span class="line">sethmachine/valheim-server</span><br></pre></td></tr></table></figure>
+<p>With <code>--restart always</code> and Docker Desktop set to restart on log in, our server should be up and running all the time once we execute the above command.  Note you can still use <code>docker stop valheim</code> followed by <code>docker rm valheim</code> to stop the server completely (e.g. you want to run a different world or take a break).</p>
+<h2 id="Port-Forwarding"><a href="#Port-Forwarding" class="headerlink" title="Port Forwarding"></a>Port Forwarding</h2><p><em>This step is highly dependent upon your internet service provider and firewall settings of the host machine.  You will likely need to do additional research to open the ports on your host machine</em></p>
+<p>Hosting a dedicated server requires allowing incoming connections from the ports the Valheim server uses.  These ports are 2456, 2457, and 2458 (UDP protocol).  Without these ports open, your server will not be visible and your friends cannot play with you.  </p>
+<p>In general you will need to follow these steps:</p>
+<ul>
+<li>Disable any firewall software on your host machine.  If you know how to modify your firewall just for the Valheim ports, feel free to do so instead.  </li>
+<li>Find your router’s IP address and then log in to it, e.g. see <a target="_blank" rel="noopener" href="https://www.highspeedinternet.com/resources/how-to-log-in-to-your-router">How to Log In to Your Router</a>  </li>
+<li>In the router admin controls, find where to add port forwarding rules.</li>
+</ul>
+<p><img src="/2021/02/10/host-valheim-with-docker/router-port-forwarding-location.png"></p>
+<ul>
+<li>Find the LAN IP address of the host machine, e.g. see: <a target="_blank" rel="noopener" href="https://uca.edu/it/knowledgebase-legacy/finding-your-ip-address-lan/">Find your LAN IP address</a>.  The LAN IP is the IP assigned to the host machine within your local/home network.  </li>
+<li>Create 3 new port forwarding rules for the host machine’s LAN IP that allow any traffic to 2456, 2457, and 2458, all for UDP. </li>
+</ul>
+<p><img src="/2021/02/10/host-valheim-with-docker/show-forwarded-ports-2456-2457-2458.png"></p>
+<p>We can use external tools and websites to see if the ports were opened correctly.  </p>
+<ul>
+<li>Turn on the Valheim server if it is not already running.     </li>
+<li>First, find your public IP address.  Head to <a target="_blank" rel="noopener" href="https://www.whatismyip.com/">whatsmyip.com</a> and keep a note of the IP v4 address.  Note most home ISPs use dynamic IPs, so at some point your IP will change and you will have to update any configurations based on the your public IP.  </li>
+<li>Head to <a target="_blank" rel="noopener" href="https://check-host.net/">check-host.net</a> and put in your public IP address followed by a colon and then the port number.  We will test each port (2456, 2457, 2458) individually.  Then hit the “UDP port” button.  If your ports are open you should see similar results to mine below.  If you see “Open or Filtered” it means it’s working.  If you see “Connection Refused”, re-check your port forwarding settings and make sure the Valheim server is running.  </li>
+</ul>
+<p><img src="/2021/02/10/host-valheim-with-docker/show-check-host-ports-open.png"></p>
+<h2 id="Access-your-server-on-Steam"><a href="#Access-your-server-on-Steam" class="headerlink" title="Access your server on Steam"></a>Access your server on Steam</h2><p>With the server running and the proper ports exposed, we can finally use the server on Steam!  </p>
+<p>Head to your Steam client and access servers from the view menu:</p>
+<p><img src="/2021/02/10/host-valheim-with-docker/steam-view-servers-menu.png"></p>
+<p>This will open a new window to manage servers.  Select the “Favorites” tab and then “Add a server”.  Enter your IPv4 address followed by port <code>2457</code>, then add the server:</p>
+<p><img src="/2021/02/10/host-valheim-with-docker/steam-add-server.png"></p>
+<p>If it works, you’ll see your server listed like mine:</p>
+<p><img src="/2021/02/10/host-valheim-with-docker/steam-server-listed.png"></p>
+<p>If you do not see anything, trying hitting the refresh button.  If your server is listed as offline or unable to connect, re-visit the previous steps. Make sure your server is actually running.  Make sure ports 2456, 2457, and 2458 are exposed.  </p>
+<p>Finally, we can actually join the server in Valheim!  </p>
+<p><img src="/2021/02/10/host-valheim-with-docker/valeheim-see-server.png"></p>
+<h2 id="Final-thoughts"><a href="#Final-thoughts" class="headerlink" title="Final thoughts"></a>Final thoughts</h2><p>We were able to successfully run the Valheim server on a Docker container, and allow it to be accessible so others can join!  We created a custom start script so the server would shut down properly and save world data.</p>
+<p>I’ve made a Docker image available on Docker Hub and the corresponding Dockerfile and script on GitHub:</p>
+<ul>
+<li>Docker Hub: <a target="_blank" rel="noopener" href="https://hub.docker.com/r/sethmachineio/valheim-server">sethmachineio/valheim-server</a></li>
+<li>GitHub: <a target="_blank" rel="noopener" href="https://github.com/sethmachine/valheim-server-docker">valheim-server-docker</a></li>
+</ul>
+<p>Feel free to leave a comment if you found this helpful, have any feedback, or are stuck on any parts of this guide.  I’ll do my best to respond and help you!  </p>
+<h3 id="Follow-up-tasks"><a href="#Follow-up-tasks" class="headerlink" title="Follow up tasks"></a>Follow up tasks</h3><p>There a few improvements we can make to make the Valheim server easier to use.  I will address these in a separate follow-up guide.  </p>
+<ul>
+<li>Automatically updating the server software without rebuilding the Docker image.  When Valheim provides updates to its game client, players on the newer client cannot join servers running on older versions of Valheim.  Right now to fix this requires stopping the server and building a new image using the <code>--no-cache</code> option.  As a follow-up we should modify the running container to automatically update itself whenever Valheim is updated.  </li>
+<li>Create backups of worlds periodically.  If anything should happen to the worlds save file (corrupted, accidentally deleted, someone griefs the server), it would be nice to have backups to revert to.  </li>
+</ul>
+
+      </div>
+      
+        <div class="prev-or-next">
+          <div class="post-foot-next">
+            
+          </div>
+          <div class="post-attach">
+            <span class="post-pubtime">
+              <i class="iconfont icon-updatetime" title="Update time"></i>
+              2021-02-11
+            </span>
+            
+              <span class="post-tags">
+                    <i class="iconfont icon-tags" title="Tags"></i>
+                
+                  <span class="span--tag">
+                      <a href="/tags/Docker/" title="Docker">
+                        <b>#</b> Docker
+                      </a>
+                    </span>
+                
+                  <span class="span--tag">
+                      <a href="/tags/Valheim/" title="Valheim">
+                        <b>#</b> Valheim
+                      </a>
+                    </span>
+                
+                  <span class="span--tag">
+                      <a href="/tags/Steam/" title="Steam">
+                        <b>#</b> Steam
+                      </a>
+                    </span>
+                
+                  <span class="span--tag">
+                      <a href="/tags/Port-Forwarding/" title="Port Forwarding">
+                        <b>#</b> Port Forwarding
+                      </a>
+                    </span>
+                
+                  <span class="span--tag">
+                      <a href="/tags/Dedicated-Server/" title="Dedicated Server">
+                        <b>#</b> Dedicated Server
+                      </a>
+                    </span>
+                
+              </span>
+            
+          </div>
+          <div class="post-foot-prev">
+            
+          </div>
+        </div>
+      
+    </div>
+    
+  <div class="post-catalog" id="catalog">
+    <div class="title">Contents</div>
+    <div class="catalog-content">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Introduction"><span class="toc-text">Introduction</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Why-host-your-own"><span class="toc-text">Why host your own?</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#About-Docker"><span class="toc-text">About Docker</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Prerequisites"><span class="toc-text">Prerequisites</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Setup-Docker"><span class="toc-text">Setup Docker</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Run-Valheim-on-Docker"><span class="toc-text">Run Valheim on Docker</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Create-a-Docker-image"><span class="toc-text">Create a Docker image</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Run-the-valheim-server-image"><span class="toc-text">Run the valheim-server image</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Port-Forwarding"><span class="toc-text">Port Forwarding</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Access-your-server-on-Steam"><span class="toc-text">Access your server on Steam</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Final-thoughts"><span class="toc-text">Final thoughts</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Follow-up-tasks"><span class="toc-text">Follow up tasks</span></a></li></ol></li></ol>
+    </div>
+  </div>
+
+  
+<script src="/js/catalog.js"></script>
+
+
+
+
+    
+      <div class="comments-container">
+        
+  <div id="disqus_thread"></div>
+  <script>
+
+  /**
+  *  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+  *  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+  /*
+  var disqus_config = function () {
+  this.page.url = PAGE_URL;  // Replace PAGE_URL with your page's canonical URL variable
+  this.page.identifier = PAGE_IDENTIFIER; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+  };
+  */
+  (function() { // DON'T EDIT BELOW THIS LINE
+  var d = document, s = d.createElement('script');
+  s.src = 'https://sethmachine01.disqus.com/embed.js';
+  s.setAttribute('data-timestamp', +new Date());
+  (d.head || d.body).appendChild(s);
+  })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+
+
+
+
+
+      </div>
+    
+  </div>
+
+
+        <div class="footer">
+  <div class="social">
+    <ul>
+      
+        <li>
+          <a title="github" target="_blank" rel="noopener" href="https://github.com/sethmachine">
+            <i class="iconfont icon-github"></i>
+          </a>
+        </li>
+      
+        <li>
+          <a title="email" href="sdworman@brandeis.edu">
+            <i class="iconfont icon-envelope"></i>
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+  
+    <div class="footer-more">
+      <a target="_blank" rel="noopener" href="https://github.com/zchengsite/hexo-theme-oranges">Copyright © Seth Dworman 2021</a>
+    </div>
+  
+    <div class="footer-more">
+      <a target="_blank" rel="noopener" href="https://github.com/zchengsite/hexo-theme-oranges">Theme by Oranges | Powered by Hexo</a>
+    </div>
+  
+    <div class="footer-more">
+      <a target="_blank" rel="noopener" href="https://icons8.com/icons/set/espresso-cup">Espresso Cup icon by Icons8</a>
+    </div>
+  
+</div>
+
+      </div>
+
+      <div class="back-to-top hidden">
+  <a href="javascript: void(0)">
+    <i class="iconfont icon-chevronup"></i>
+  </a>
+</div>
+
+
+<script src="/js/backtotop.js"></script>
+
+
+
+      
+
+
+    </div>
+  </body>
+</html>

@@ -103,11 +103,11 @@ theme: oranges
 # Deployment
 ## Docs: https://hexo.io/docs/one-command-deployment
 deploy:
-  type: ''
+  type: git
+  repo: https://github.com/sethmachine/sethmachine.github.io
+  branch: gh-pages-hexo-deploy
 
 marked:
   prependRoot: true
   postAsset: true
 
-images:
-  enable: true

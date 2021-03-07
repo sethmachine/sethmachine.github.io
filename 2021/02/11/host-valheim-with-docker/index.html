@@ -146,7 +146,7 @@
         
       </div>
       <div class="markdown-body">
-        <h2 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h2><p><img src="/2021/02/10/host-valheim-with-docker/valheim-dedicated-server-logo.jpg" alt="Valheim Dedicated Server with Docker"></p>
+        <h2 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h2><p><img src="/2021/02/11/host-valheim-with-docker/valheim-dedicated-server-logo.jpg" alt="Valheim Dedicated Server with Docker"></p>
 <p>This guide explains how to host a dedicated Valheim server with Docker that can be run at home while still being publicly accessible over the internet so your friends can join anytime.  Ideally the server is hosted on a spare computer, but it can still run on the same computer you play on.   </p>
 <p>For those unfamiliar, <a target="_blank" rel="noopener" href="https://store.steampowered.com/app/892970/Valheim/">Valheim</a> is a builder-survival that is akin to Minecraft but much darker and focused on a Viking theme, which has gone viral with over 1 million purchases in its first weeks. Now is a better time than ever to start playing!</p>
 <p>If you’ve worked with Docker before and know what you’re doing, feel free to jump straight to using the image I built:</p>
@@ -173,9 +173,9 @@
 </ul>
 <h2 id="Setup-Docker"><a href="#Setup-Docker" class="headerlink" title="Setup Docker"></a>Setup Docker</h2><p>Download and install <a target="_blank" rel="noopener" href="https://www.docker.com/products/docker-desktop">Docker Desktop</a> on the host machine. I installed it on macOS but same steps apply if you are using Windows or Linux. You may get prompted for a tutorial when starting Docker Desktop for the first time, feel free to complete it if you aren’t familiar with Docker.  </p>
 <p>Once installed, head to Docker’s preferences to change resources and restart policy. Make sure to check the checkbox “Start Docker Desktop when you log in”.    </p>
-<p><img src="/2021/02/10/host-valheim-with-docker/docker-restart-on-log-in.png"></p>
+<p><img src="/2021/02/11/host-valheim-with-docker/docker-restart-on-log-in.png"></p>
 <p>Change the amount of memory, CPUs, and disk space Docker is allocated.  Any running Docker containers won’t exceed the amounts here. If the host machine is just running the Valheim server, I’d recommend to allocate all available memory and CPUs to maximize performance. The disk image size constraints how much storage Docker can use before it “runs out”; I set mine to around 50 GB.  After making changes, hit “Apply and Restart” for it to take effect.   </p>
-<p><img src="/2021/02/10/host-valheim-with-docker/change-docker-memory-cpus.png"></p>
+<p><img src="/2021/02/11/host-valheim-with-docker/change-docker-memory-cpus.png"></p>
 <p>For next steps, we will be using Docker’s command line interface (CLI) called <code>docker</code>. The CLI is only available if Docker Desktop is running. To make sure it’s working, open a Terminal or Command Prompt and type in <code>docker ps</code>. You should see output similar to below.  </p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sethmachine % docker ps</span><br><span class="line">CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES</span><br></pre></td></tr></table></figure>
 
@@ -296,29 +296,29 @@
 <li>Find your router’s IP address and then log in to it, e.g. see <a target="_blank" rel="noopener" href="https://www.highspeedinternet.com/resources/how-to-log-in-to-your-router">How to Log In to Your Router</a>  </li>
 <li>In the router admin controls, find where to add port forwarding rules.</li>
 </ul>
-<p><img src="/2021/02/10/host-valheim-with-docker/router-port-forwarding-location.png"></p>
+<p><img src="/2021/02/11/host-valheim-with-docker/router-port-forwarding-location.png"></p>
 <ul>
 <li>Find the LAN IP address of the host machine, e.g. see: <a target="_blank" rel="noopener" href="https://uca.edu/it/knowledgebase-legacy/finding-your-ip-address-lan/">Find your LAN IP address</a>.  The LAN IP is the IP assigned to the host machine within your local/home network.  </li>
 <li>Create 3 new port forwarding rules for the host machine’s LAN IP that allow any traffic to 2456, 2457, and 2458, all for UDP. </li>
 </ul>
-<p><img src="/2021/02/10/host-valheim-with-docker/show-forwarded-ports-2456-2457-2458.png"></p>
+<p><img src="/2021/02/11/host-valheim-with-docker/show-forwarded-ports-2456-2457-2458.png"></p>
 <p>We can use external tools and websites to see if the ports were opened correctly.  </p>
 <ul>
 <li>Turn on the Valheim server if it is not already running.     </li>
 <li>First, find your public IP address.  Head to <a target="_blank" rel="noopener" href="https://www.whatismyip.com/">whatsmyip.com</a> and keep a note of the IP v4 address.  Note most home ISPs use dynamic IPs, so at some point your IP will change and you will have to update any configurations based on the your public IP.  </li>
 <li>Head to <a target="_blank" rel="noopener" href="https://check-host.net/">check-host.net</a> and put in your public IP address followed by a colon and then the port number.  We will test each port (2456, 2457, 2458) individually.  Then hit the “UDP port” button.  If your ports are open you should see similar results to mine below.  If you see “Open or Filtered” it means it’s working.  If you see “Connection Refused”, re-check your port forwarding settings and make sure the Valheim server is running.  </li>
 </ul>
-<p><img src="/2021/02/10/host-valheim-with-docker/show-check-host-ports-open.png"></p>
+<p><img src="/2021/02/11/host-valheim-with-docker/show-check-host-ports-open.png"></p>
 <h2 id="Access-your-server-on-Steam"><a href="#Access-your-server-on-Steam" class="headerlink" title="Access your server on Steam"></a>Access your server on Steam</h2><p>With the server running and the proper ports exposed, we can finally use the server on Steam!  </p>
 <p>Head to your Steam client and access servers from the view menu:</p>
-<p><img src="/2021/02/10/host-valheim-with-docker/steam-view-servers-menu.png"></p>
+<p><img src="/2021/02/11/host-valheim-with-docker/steam-view-servers-menu.png"></p>
 <p>This will open a new window to manage servers.  Select the “Favorites” tab and then “Add a server”.  Enter your IPv4 address followed by port <code>2457</code>, then add the server:</p>
-<p><img src="/2021/02/10/host-valheim-with-docker/steam-add-server.png"></p>
+<p><img src="/2021/02/11/host-valheim-with-docker/steam-add-server.png"></p>
 <p>If it works, you’ll see your server listed like mine:</p>
-<p><img src="/2021/02/10/host-valheim-with-docker/steam-server-listed.png"></p>
+<p><img src="/2021/02/11/host-valheim-with-docker/steam-server-listed.png"></p>
 <p>If you do not see anything, trying hitting the refresh button.  If your server is listed as offline or unable to connect, re-visit the previous steps. Make sure your server is actually running.  Make sure ports 2456, 2457, and 2458 are exposed.  </p>
 <p>Finally, we can actually join the server in Valheim!  </p>
-<p><img src="/2021/02/10/host-valheim-with-docker/valeheim-see-server.png"></p>
+<p><img src="/2021/02/11/host-valheim-with-docker/valeheim-see-server.png"></p>
 <h2 id="Final-thoughts"><a href="#Final-thoughts" class="headerlink" title="Final thoughts"></a>Final thoughts</h2><p>We were able to successfully run the Valheim server on a Docker container, and allow it to be accessible so others can join!  We created a custom start script so the server would shut down properly and save world data.</p>
 <p>I’ve made a Docker image available on Docker Hub and the corresponding Dockerfile and script on GitHub:</p>
 <ul>

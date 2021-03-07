@@ -9,7 +9,7 @@ description: ''
 keywords:
 author: Seth Dworman
 language: en
-timezone: ''
+timezone: 'America/New_York'
 
 # URL
 ## If your site is put in a subdirectory, set url as 'http://example.com/child' and root as '/child/'

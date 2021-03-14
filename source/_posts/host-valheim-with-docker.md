@@ -319,11 +319,11 @@ To run the Valheim server image, we need to decide where Valheim's worlds data w
 
 The image volume `/home/steam/valheim-data` needs to be bound to a directory on the host machine where all worlds data is persisted. The host machine directory should be empty or contain a subdirectory called `worlds` which can contain already created Valheim worlds. When the Valheim server runs, if the world does not exist in the host directory, then it will be created anew. If the world already does exist (i.e. there are files in the `worlds` subdirectory with the name of the world), then the server will use it as the server's world rather than making a new one. 
 
-On my host machine, I have a directory at `/home/sethmachine/valeim-data` which I will map onto the image's volume.  Here is what it looks like before I run the Valhem server and make a new world:
+On my host machine, I have a directory at `/home/sethmachine/valheim-data` which I will map onto the image's volume.  Here is what it looks like before I run the Valhem server and make a new world:
 
 ```bash
-sethmachine valheim-server-docker % tree /home/sethmachine/valeim-data
-/home/sethmachine/valeim-data
+sethmachine valheim-server-docker % tree /home/sethmachine/valheim-data
+/home/sethmachine/valheim-data
 └── worlds
     ├── OldWorld.db
     └── OldWorld.fwl
@@ -341,12 +341,12 @@ There are 3 parameters to set when running the server.  The server name and worl
 * `VALHEIM_WORLD_NAME`: the name of the Valheim world (can be an existing world), truncated at first whitespace
 * `VALHEIM_PASSWORD`: the password to join the server (can be set to empty for no password, default is "password")
 
-Below is an example command that runs a Valheim server with the host directory set to `/home/sethmachine/valeim-data`.  Note this container is named `valheim` to make it easier to reference with Docker commands.  
+Below is an example command that runs a Valheim server with the host directory set to `/home/sethmachine/valheim-data`.  Note this container is named `valheim` to make it easier to reference with Docker commands.  
 
 ```bash
 docker run --name=valheim -d \
 -p 2456:2456/udp -p 2457:2457/udp -p 2458:2458/udp \
--v /home/sethmachine/valeim-data:/home/steam/valheim-data \
+-v /home/sethmachine/valheim-data:/home/steam/valheim-data \
 --env VALHEIM_SERVER_NAME="sethmachine'sServer" \
 --env VALHEIM_WORLD_NAME="AWholeNewWorld" \
 --env VALHEIM_PASSWORD="HardToGuessPassword" \
@@ -381,11 +381,11 @@ Valheim world name is: AWholeNewWorld
 Valheim server PID is: 7
 ```
 
-Under the mounted host directory (mine is `/home/sethmachine/valeim-data`), there should be several files and a "worlds" subdirectory:
+Under the mounted host directory (mine is `/home/sethmachine/valheim-data`), there should be several files and a "worlds" subdirectory:
 
 ```bash
-sethmachine valheim-server-docker % tree /home/sethmachine/valeim-data
-/home/sethmachine/valeim-data
+sethmachine valheim-server-docker % tree /home/sethmachine/valheim-data
+/home/sethmachine/valheim-data
 ├── AWholeNewWorld-logs.txt
 ├── adminlist.txt
 ├── bannedlist.txt
@@ -413,8 +413,8 @@ To stop the server, use `docker stop valheim`.  This will create a new database 
 ```bash
 sethmachine valheim-server-docker % docker stop valheim
 valheim
-sethmachine valheim-server-docker % tree /home/sethmachine/valeim-data
-/home/sethmachine/valeim-data
+sethmachine valheim-server-docker % tree /home/sethmachine/valheim-data
+/home/sethmachine/valheim-data
 ├── AWholeNewWorld-logs.txt
 ├── adminlist.txt
 ├── bannedlist.txt
@@ -436,7 +436,7 @@ For the server to be up almost 24/7 we will want it to restart automatically whe
 docker run --name=valheim -d \
 --restart always \
 -p 2456:2456/udp -p 2457:2457/udp -p 2458:2458/udp \
--v /home/sethmachine/valeim-data:/home/steam/valheim-data \
+-v /home/sethmachine/valheim-data:/home/steam/valheim-data \
 --env VALHEIM_SERVER_NAME="sethmachine'sServer" \
 --env VALHEIM_WORLD_NAME="AWholeNewWorld" \
 --env VALHEIM_PASSWORD="HardToGuessPassword" \

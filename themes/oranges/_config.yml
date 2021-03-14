@@ -18,8 +18,8 @@
 # 网站图标
 favicon:
   enable: true
-  icon: /images/icons8-espresso-cup-100 (1).png
-  touch_icon: /images/icons8-espresso-cup-100 (1).png
+  icon: /images/icons8-espresso-cup-100-newest.png
+  touch_icon: /images/icons8-espresso-cup-100-newest.png
 
 # 用户头像与昵称
 avatar:

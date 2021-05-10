@@ -7,6 +7,7 @@ tags:
 - Steam
 - Port Forwarding
 - Dedicated Server
+- Bash}
 ---
 ## Introduction
 
@@ -93,7 +94,7 @@ You should notice your command prompt has changed.  We are now in the running Do
  
  * The Docker container will stop running if you exit (e.g. CTRL+D)
  * While the container is running, use `docker ps` to find its container ID (host machine terminal)
- * The running container is named `steamcmd` (from `--name=steamcmd`).  
+ * The running container is named `steamcmd` (from `-=-name=steamcmd`).  
  * The same container can be re-activated by using `docker start --interactive steamcmd`
  * To delete the named container, use `docker rm steamcmd`.  
 
@@ -120,7 +121,7 @@ steam@cf87295af3ac:~/steamcmd$ ls valheimserver/
 
 The server install includes a manual which I've also made available here: [Valheim Dedicated Server Manual](/misc/valheim-dedicated-server-manual.pdf) (disclaimer: the manual is subject to change so this link may become outdated). The manual explains how to run the Valheim server and its different configurable options.  Below is the command I used to copy the manual from the running Docker container. This command is run from the host machine's terminal and not within the Docker container.  
 
-```bash
+```bashdc
 docker cp steamcmd:/home/steam/steamcmd/valheimserver/'Valheim Dedicated Server Manual.pdf' ~/desktop
 ```
 
@@ -145,6 +146,7 @@ To create and edit a copy of `start_server.sh`:
     * Copy file to host machine to desktop: `docker cp steamcmd:/home/steam/steamcmd/valheimserver/start_server.sh ~/desktop`
     * Edit and save as `example-start-server.sh`.  
     * Copy back to the Docker container: `docker cp example-start-server.sh steamcmd:/home/steam/steamcmd/valheimserver`
+* (Linux/macOS) Make the script executable by running `chmod +x example-start-server.sh`
 
 After editing this is what my `example-start-server.sh` looks like (I removed the comments):
 
@@ -272,6 +274,8 @@ echo "Valheim server PID is: $VALHEIM_PID"
 # since the server is run in the background, this is needed to keep the main process from exiting
 while wait $!; [ $? != 0 ]; do true; done
 ```
+
+*(Linux/macOS) Note you may need to make the script executable by running `chmod +x start-valheim-server.sh`*
 
 This script is mostly a copy of the original `start_server.sh` script that comes with Valheim server installation.  I've added comments to explain some of the changes made to accommodate running the server in Docker. Most importantly is providing a graceful shutdown to the running Valheim server, which needs a `SIGINT` signal to properly terminate (equivalent to hitting CTRL+C when running the server manually). Docker sends a `SIGTERM` signal by default. This script traps the `SIGTERM` signal, and then sends a `SIGINT` signal to the Valheim server process (the `kill -2` command) before exiting properly.  Without this behavior, the server would not terminate properly and thus world data would not be saved completely. For more background on why this is necessary, see this wonderful article: [Gracefully Stopping Docker Containers](https://www.ctl.io/developers/blog/post/gracefully-stopping-docker-containers/).  
 

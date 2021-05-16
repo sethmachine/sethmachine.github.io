@@ -12,12 +12,12 @@ tags:
 
 This guides explains how to set up automatic update for a dedicated Valheim server with Docker.  Automatic update is exciting because it minimizes server downtime as a human no longer needs to manually update and restart the server, giving a true 24/7 server uptime experience.    
 
-This guide assumes you have already successfully set up a dedicated server.  It builds on the previous guide [Host Valheim with Docker]() that covers the basics of running a dedicated server at home.  I recommend reading through the previous guide if you haven't already, as this guide will reference many ideas and keywords introduced previously.  
+This guide assumes you have already successfully set up a dedicated server.  It builds on the previous guide {% post_link host-valheim-with-docker %} that covers the basics of running a dedicated server at home.  I recommend reading through the previous guide if you haven't already, as this guide will reference many ideas and keywords introduced previously.  
 
 If you're quite familiar with Valheim servers, Docker, and Bash, feel free to jump straight to using the image I built:
 
-* (link to docker hub)
-* (link to github)
+* Docker Hub: [sethmachineio/valheim-server](https://hub.docker.com/r/sethmachineio/valheim-server)
+* GitHub: [valheim-server-docker](https://github.com/sethmachine/valheim-server-docker)
 
 ## Why automatic update
 
@@ -64,7 +64,7 @@ For testing purposes, I'll be using an outdated copy of the Valheim server (vers
 
 ### Logging
 
-The demands of automatic update require orchestrating several different steps: detecting an update, shutting down the server, updating the server, and starting it backup.  In the previous [guide]() we built a simple system: startup the server once and shutdown the server once.  Our new automatic update system can potentially start up, update, and shut down an infinite number of times.  To handle this massive increase in complexity, we will want keep track of the state of automatic update to understand how it is behaving as it runs for real, which will help in debugging any unforeseen issues going forward.  Enter logging, which is exactly what is sounds: keep track of key state about our system as it performs different steps as human readable text.  Previously we had used just `echo` statements, but these require heavy modification to be of use in our new, more complex system (e.g. timestamps, which function the message came from, etc.).  
+The demands of automatic update require orchestrating several different steps: detecting an update, shutting down the server, updating the server, and starting it backup.  In {% post_link host-valheim-with-docker the previous guide %}  we built a simple system: startup the server once and shutdown the server once.  Our new automatic update system can potentially start up, update, and shut down an infinite number of times.  To handle this massive increase in complexity, we will want keep track of the state of automatic update to understand how it is behaving as it runs for real, which will help in debugging any unforeseen issues going forward.  Enter logging, which is exactly what is sounds: keep track of key state about our system as it performs different steps as human readable text.  Previously we had used just `echo` statements, but these require heavy modification to be of use in our new, more complex system (e.g. timestamps, which function the message came from, etc.).  
 
 For logging we will use [b-log](https://github.com/idelsink/b-log) which runs out of the box with logging levels like `INFO`, `WARN`, and `ERROR`.  
 
@@ -462,7 +462,7 @@ cat valheim-app-info | pcregrep -o1 -M '"branches".*\n*.*{\n*.*"public".*\n*.*{.
 
 This should output the latest build ID 6508109!  
 
-### Putting it together
+### Compare build IDs
 
 It is now possible to extract the local build ID (version of the Valheim server currently being run) and the remote build ID (latest version of the Valheim server).  These two build IDs can be compared to determine if the server has to be updated.  There's a lot to keep track of, so it makes sense to begin organizing our automatic update code into different script files.  Below is what I've come up with for a 1st iteration of checking if the server needs to be updated.  The file is named `update-valheim-server.sh`:
 
@@ -765,6 +765,7 @@ function checkForAndUpdateValheimServer(){
 
 function startUpdateLoop(){
     trap 'shutdownValheimServerAndExit' SIGTERM
+    startValheimServer
     while true
     do
         INFO "Sleeping for $VALHEIM_SERVER_AUTO_UPDATE_FREQUENCY before checking for Valheim server update"
@@ -835,16 +836,13 @@ then
     # Handle starting and shutting down server normally if no auto update
     # catch Docker's SIGTERM, then send a SIGINT to the Valheim server process
     trap 'shutdownValheimServerAndExit' SIGTERM
-
     startValheimServer
-
     # since the server is run in the background, this is needed to keep the main process from exiting
     while wait $VALHEIM_SERVER_PID; [ $? != 0 ]; do true; done
 else
     WARN "Experimental auto update is enabled.  The server will automatically update and restart when a new version is detected"
     INFO "Updates to the server will be checked every $VALHEIM_SERVER_AUTO_UPDATE_FREQUENCY"
     
-    startValheimServer &
     trap 'terminateUpdateLoop' SIGTERM
     startUpdateLoop &
     VALHEIM_SERVER_UPDATE_LOOP_PID=$!
@@ -859,6 +857,23 @@ Some important details:
 * `VALHEIM_SERVER_UPDATE_ON_START_UP` is a runtime parameter that controls whether to update the server whenever starting the container for the first time rather than waiting for the update loop to detect an update.
 * `VALHEIM_SERVER_AUTO_UPDATE` enables the auto update feature; if set to 0 then the container will simply run the Valheim server at its current version.  Any other value will enable auto update.  Some users may wish to disable auto update if they are running a legacy server or want full control of updates.  
 * `terminateUpdateLoop` handles stopping the update loop if the container is stopped, e.g. `docker stop valheim-server`.  It handles the SIGTERM signal from Docker and then redirects it to update loop process, which causes it to execute `shutdownValheimServerAndExit`.
+
+### How it all works
+
+The organization of the scripts is key to making the automatic update process function correctly.  In this case, there are at least 4 different processes at work within the Docker container that are running all the time:
+
+* The entry point process, which Docker executes when it starts (i.e. `valheim-server-entrypoint.sh`)
+* The update loop (from `startUpdateLoop`)
+* The sleep process (the pause before checking for an update)
+* The Valheim server
+
+In Bash, a process is only aware of its immediate child processes.  The update loop process is an immediate child of the entry point.  The sleep process and the Valheim server are immediate children of the update loop.  This is why `startValheimServer` is done in the update loop rather than in the entry point script.  If Valheim was instead started in the entry point, then the update loop would be unable to stop the server (`VALHEIM_SERVER_PID` would resolve to an empty string).  However, when automatic update is disabled, we do start Valheim in the entry point, as it is simply meant to run forever and never be stopped within the container.  
+
+This process hierarchy is illustrated in how the container is stopped with automatic update:
+
+![Valheim Dedicated Server with Docker](valheim-auto-update-shutdown-diagram.png)
+
+When the container is stopped, Docker sends a SIGTERM signal to the entry point process.  In the entry point, the signal is trapped with `trap 'terminateUpdateLoop' SIGTERM`.  This intercept's the SIGTERM and executes the code in `terminateUpdateLoop`.  The function sends a SIGTERM to the update loop process via `kill -15 $VALHEIM_SERVER_UPDATE_LOOP_PID`.  The update loop traps this SIGTERM as well via `trap 'shutdownValheimServerAndExit' SIGTERM`.  The method `shutdownValheimServerAndExit` sends a SIGINT to the Valheim server and then exits with 0.  
 
 ### Updated Dockerfile
 
@@ -935,9 +950,236 @@ Note we will still use the outdated server until we verify the automatic update 
 
 ## Testing automatic update
 
-Let's test automatic update under a few different scenarios.  
+Rebuild the Docker image with the updated Dockerfile and scripts, e.g. `docker build -t valheim/auto-update -f Dockerfile --no-cache .`  Make sure the script files and the `dev/valheim-server` are in the current directory when building the image.
 
+### Verify it automatically updates
+
+1.  Run the image in a new container using these parameters:
+    ```bash
+    docker run --name=valheim-server -d \
+    -v /home/sethmachine/valheim-data:/home/steam/valheim-data \
+    --env VALHEIM_SERVER_NAME="OutdatedServer" \
+    --env VALHEIM_WORLD_NAME="OutdatedWorld" \
+    --env VALHEIM_PASSWORD="HardToGuessPassword" \
+    --env VALHEIM_SERVER_UPDATE_ON_START_UP=0 \
+    --env VALHEIM_SERVER_AUTO_UPDATE=1 \
+    --env VALHEIM_SERVER_AUTO_UPDATE_FREQUENCY=10s \
+    valheim/auto-update
+    ```
+    Note you will need to substitute the local worlds directory `/home/sethmachine/valheim-data` with an actual directory on your computer.  `VALHEIM_SERVER_UPDATE_ON_START_UP` is set to 0 so we can test the update loop.  `VALHEIM_SERVER_AUTO_UPDATE_FREQUENCY` is set to 10 seconds to give us time to tail log files right before the update happens.    
+1.  Tail the logs of the running container in a separate terminal, e.g. `docker logs -f valheim-server`.  You should see output like below (note yours may be colored differently):
+    ```bash
+    [2021-05-15 15:11:26.426][WARN  ][main:51 ] Experimental auto update is enabled.  The server will automatically update and restart when a new version is detected
+    [2021-05-15 15:11:26.429][INFO  ][main:52 ] Updates to the server will be checked every 10s
+    [2021-05-15 15:11:26.432][INFO  ][main:57 ] Valheim server update loop PID is: 9
+    [2021-05-15 15:11:26.432][INFO  ][startValheimServer:14 ] Starting the Valheim server
+    [2021-05-15 15:11:26.435][INFO  ][startValheimServer:15 ] LD_LIBRARY_PATH: ./linux64:
+    [2021-05-15 15:11:26.437][INFO  ][startValheimServer:17 ] Valheim port is: 2456
+    [2021-05-15 15:11:26.440][INFO  ][startValheimServer:18 ] Valheim server name is: OutdatedServer
+    [2021-05-15 15:11:26.442][INFO  ][startValheimServer:19 ] Valheim world name is: OutdatedWorld
+    [2021-05-15 15:11:26.444][INFO  ][startValheimServer:24 ] The Valheim server is set to public visibility.  It will be visible in the server list.  Players will still need to enter the password to join
+    [2021-05-15 15:11:26.446][INFO  ][startValheimServer:37 ] Valheim server PID is: 17
+    [2021-05-15 15:11:26.448][INFO  ][startServerAndUpdateLoop:111] Sleeping for 10s before checking for Valheim server update
+    ```
+1.  After 10 seconds, the log output should begin to change and show the automatic update steps:
+    ```bash
+    [2021-05-15 15:11:36.452][INFO  ][checkForAndUpdateValheimServer:89 ] Checking to see if the Valheim server needs to be updated
+    [2021-05-15 15:11:36.458][INFO  ][findAndSetLocalValheimServerBuildId:30 ] The local build ID is 6315977
+    [2021-05-15 15:11:36.461][INFO  ][findAndSetRemoteValheimServerBuildId:44 ] Querying the remote server for the latest build ID for the Valheim server
+    [2021-05-15 15:11:57.070][INFO  ][findAndSetRemoteValheimServerBuildId:56 ] The remote server build ID is 6663905
+    [2021-05-15 15:11:57.073][INFO  ][checkForAndUpdateValheimServer:96 ] Updating the Valheim server from 6315977 (old) to 6663905 (new)
+    [2021-05-15 15:11:57.075][WARN  ][shutdownValheimServer:19 ] Shutting down the Valheim server.  PID is: 17
+    [2021-05-15 15:12:01.043][INFO  ][updateValheimServer:69 ] Updating the Valheim server  
+    ```
+1.  The logs should then show Steam updating the server:
+
+    ```bash
+    WARNING: setlocale('en_US.UTF-8') failed, using locale: 'C'. International characters may not work.
+    Redirecting stderr to '/home/steam/Steam/logs/stderr.txt'
+    [  0%] Checking for available updates...
+    [----] Verifying installation...
+    Steam Console Client (c) Valve Corporation
+    -- type 'quit' to exit --
+    Loading Steam API...OK.
+    
+    Connecting anonymously to Steam Public...Logged in OK
+    Waiting for user info...OK
+     Update state (0x3) reconfiguring, progress: 0.00 (0 / 0)
+     Update state (0x3) reconfiguring, progress: 0.00 (0 / 0)
+     Update state (0x61) downloading, progress: 0.11 (1048576 / 979372945)
+     Update state (0x61) downloading, progress: 5.85 (57256869 / 979372945)
+     Update state (0x61) downloading, progress: 87.31 (855081381 / 979372945)
+     Update state (0x61) downloading, progress: 94.83 (928751241 / 979372945)
+     Update state (0x61) downloading, progress: 98.07 (960498577 / 979372945)
+     Update state (0x61) downloading, progress: 99.79 (977275793 / 979372945)
+     Update state (0x101) committing, progress: 0.00 (0 / 979372945)
+    Success! App '896660' fully installed.    
+    ```
+1.  Finally, the server should start back up again.  It will still check for updates but since it is now up to date, nothing should happen:
+
+    ```bash
+    [2021-05-15 15:12:20.379][INFO  ][findAndSetLocalValheimServerBuildId:28 ] The local build ID was updated from 6315977 to 6663905
+    [2021-05-15 15:12:20.384][INFO  ][assertLocalBuildIsLatest:64 ] The local build ID is the same as the latest remote build ID
+    [2021-05-15 15:12:20.390][INFO  ][startValheimServer:14 ] Starting the Valheim server
+    [2021-05-15 15:12:20.393][INFO  ][startValheimServer:15 ] LD_LIBRARY_PATH: ./linux64:./linux64:
+    [2021-05-15 15:12:20.398][INFO  ][startValheimServer:17 ] Valheim port is: 2456
+    [2021-05-15 15:12:20.402][INFO  ][startValheimServer:18 ] Valheim server name is: OutdatedServer
+    [2021-05-15 15:12:20.406][INFO  ][startValheimServer:19 ] Valheim world name is: OutdatedWorld
+    [2021-05-15 15:12:20.409][INFO  ][startValheimServer:24 ] The Valheim server is set to public visibility.  It will be visible in the server list.  Players will still need to enter the password to join
+    [2021-05-15 15:12:20.412][INFO  ][startValheimServer:37 ] Valheim server PID is: 164
+    [2021-05-15 15:12:20.418][INFO  ][startServerAndUpdateLoop:111] Sleeping for 10s before checking for Valheim server update
+    [2021-05-15 15:12:30.426][INFO  ][checkForAndUpdateValheimServer:89 ] Checking to see if the Valheim server needs to be updated
+    [2021-05-15 15:12:30.432][INFO  ][findAndSetLocalValheimServerBuildId:30 ] The local build ID is 6663905
+    [2021-05-15 15:12:30.435][INFO  ][findAndSetRemoteValheimServerBuildId:39 ] Deleting cached app info: /home/steam/Steam/appcache/appinfo.vdf
+    [2021-05-15 15:12:30.440][INFO  ][findAndSetRemoteValheimServerBuildId:44 ] Querying the remote server for the latest build ID for the Valheim server
+    [2021-05-15 15:12:35.529][INFO  ][findAndSetRemoteValheimServerBuildId:56 ] The remote server build ID is 6663905
+    [2021-05-15 15:12:35.533][INFO  ][checkForAndUpdateValheimServer:94 ] The Valheim server is already up to date with build ID 6663905
+    ```
+1.  We should verify that the server stops gracefully after an update.  Run `docker stop valheim-server` and see this output:
+    
+    ```bash
+    [2021-05-15 15:14:53.989][INFO  ][terminateUpdateLoop:33 ] Terminating the update loop.  PID is 9
+    [2021-05-15 15:14:53.993][WARN  ][shutdownValheimServerAndExit:7  ] Shutting down the Valheim server.  PID is: 164
+    ```
+1.  Inspect the exit code to make sure it is zero (a non-zero exit code would mean a problem): 
+
+    ```bash
+    valheim-server-docker % docker inspect valheim-server --format='{{.State.ExitCode}}'
+    0
+    ```
+1.  Delete the container: `docker rm valheim-server`
+
+If you observe similar output, it means the automatic update is working!   
   
+### Verify it updates on start up
+
+Each time the server is started up, we can check for update rather than wait on the loop to execute.  This is potentially faster, as the update is run before the server actually starts.  If it is updated on start up, we expect the update loop to not execute.  Updating on start up also allows for updating the server without rebuilding the Docker image.  
+
+1.  Run the image in a new container using these parameters:
+    ```bash
+    docker run --name=valheim-server -d \
+    -v /home/sethmachine/valheim-data:/home/steam/valheim-data \
+    --env VALHEIM_SERVER_NAME="OutdatedServer" \
+    --env VALHEIM_WORLD_NAME="OutdatedWorld" \
+    --env VALHEIM_PASSWORD="HardToGuessPassword" \
+    --env VALHEIM_SERVER_UPDATE_ON_START_UP=1 \
+    --env VALHEIM_SERVER_AUTO_UPDATE=1 \
+    --env VALHEIM_SERVER_AUTO_UPDATE_FREQUENCY=10s \
+    valheim/auto-update
+    ```
+1.  Tail the log files of the container, e.g. `docker logs -f valheim-server`.  Instead of starting the server, it should immediately begin performing an update, as shown below:
+    ```bash
+    [2021-05-16 00:39:05.678][INFO  ][main:28 ] Attempting one time update of the Valheim server on start up
+    [2021-05-16 00:39:05.680][INFO  ][updateValheimServerIfNewerBuildExists:75 ] Checking to see if the Valheim server needs to be updated
+    [2021-05-16 00:39:05.686][INFO  ][findAndSetLocalValheimServerBuildId:30 ] The local build ID is 6315977
+    [2021-05-16 00:39:05.688][INFO  ][findAndSetRemoteValheimServerBuildId:44 ] Querying the remote server for the latest build ID for the Valheim server
+    [2021-05-16 00:39:19.405][INFO  ][findAndSetRemoteValheimServerBuildId:56 ] The remote server build ID is 6663905
+    [2021-05-16 00:39:19.408][INFO  ][updateValheimServer:69 ] Updating the Valheim server    
+    ```
+1.  Continue tailing the logs and verify that it the update loop does not update the server:
+    ```bash
+    [2021-05-16 00:39:39.660][WARN  ][main:51 ] Experimental auto update is enabled.  The server will automatically update and restart when a new version is detected
+    [2021-05-16 00:39:39.664][INFO  ][main:52 ] Updates to the server will be checked every 10s
+    [2021-05-16 00:39:39.667][INFO  ][startValheimServer:14 ] Starting the Valheim server
+    [2021-05-16 00:39:39.667][INFO  ][main:57 ] Valheim server update loop PID is: 93
+    [2021-05-16 00:39:39.671][INFO  ][startValheimServer:15 ] LD_LIBRARY_PATH: ./linux64:
+    [2021-05-16 00:39:39.674][INFO  ][startValheimServer:17 ] Valheim port is: 2456
+    [2021-05-16 00:39:39.676][INFO  ][startValheimServer:18 ] Valheim server name is: OutdatedServer
+    [2021-05-16 00:39:39.679][INFO  ][startValheimServer:19 ] Valheim world name is: OutdatedWorld
+    [2021-05-16 00:39:39.682][INFO  ][startValheimServer:24 ] The Valheim server is set to public visibility.  It will be visible in the server list.  Players will still need to enter the password to join
+    [2021-05-16 00:39:39.686][INFO  ][startValheimServer:37 ] Valheim server PID is: 101
+    [2021-05-16 00:39:39.690][INFO  ][startServerAndUpdateLoop:111] Sleeping for 10s before checking for Valheim server update
+    [2021-05-16 00:39:49.662][INFO  ][checkForAndUpdateValheimServer:89 ] Checking to see if the Valheim server needs to be updated
+    [2021-05-16 00:39:49.667][INFO  ][findAndSetLocalValheimServerBuildId:28 ] The local build ID was updated from 6315977 to 6663905
+    [2021-05-16 00:39:49.670][INFO  ][findAndSetRemoteValheimServerBuildId:39 ] Deleting cached app info: /home/steam/Steam/appcache/appinfo.vdf
+    [2021-05-16 00:39:49.674][INFO  ][findAndSetRemoteValheimServerBuildId:44 ] Querying the remote server for the latest build ID for the Valheim server
+    [2021-05-16 00:39:54.476][INFO  ][findAndSetRemoteValheimServerBuildId:56 ] The remote server build ID is 6663905
+    [2021-05-16 00:39:54.479][INFO  ][checkForAndUpdateValheimServer:94 ] The Valheim server is already up to date with build ID 6663905
+    ```
+1.  Stop the container and verify the exit code is 0:
+    ```bash
+    valheim-server-docker % docker stop valheim-server
+    valheim-server
+    valheim-server-docker % docker inspect valheim-server --format='{{.State.ExitCode}}'
+    0
+    ```
+1.  Delete the container: `docker rm valheim-server`
+
+If you observe similar output, it means the update on startup feature is working as expected.   
+
+### Verify automatic update can be disabled
+
+This is to confirm that the server still works if automatic update is turned off.  Turing off automatic update may be useful if you want to run a specific version of the Valheim server, or otherwise want to control when updates happen.  In most cases for a server running 24/7, keeping automatic update on is recommended.
+
+1.  Run the image in a new container using these parameters:
+    ```bash
+    docker run --name=valheim-server -d \
+    -v /home/sethmachine/valheim-data:/home/steam/valheim-data \
+    --env VALHEIM_SERVER_NAME="OutdatedServer" \
+    --env VALHEIM_WORLD_NAME="OutdatedWorld" \
+    --env VALHEIM_PASSWORD="HardToGuessPassword" \
+    --env VALHEIM_SERVER_UPDATE_ON_START_UP=0 \
+    --env VALHEIM_SERVER_AUTO_UPDATE=0 \
+    --env VALHEIM_SERVER_AUTO_UPDATE_FREQUENCY=10s \
+    valheim/auto-update
+    ```
+1.  Tail the logs and verify the server starts but does not update with `docker logs -f valheim-server`.  
+    ```bash
+    [2021-05-16 00:47:10.197][INFO  ][startValheimServer:14 ] Starting the Valheim server
+    [2021-05-16 00:47:10.200][INFO  ][startValheimServer:15 ] LD_LIBRARY_PATH: ./linux64:
+    [2021-05-16 00:47:10.205][INFO  ][startValheimServer:17 ] Valheim port is: 2456
+    [2021-05-16 00:47:10.208][INFO  ][startValheimServer:18 ] Valheim server name is: OutdatedServer
+    [2021-05-16 00:47:10.210][INFO  ][startValheimServer:19 ] Valheim world name is: OutdatedWorld
+    [2021-05-16 00:47:10.212][INFO  ][startValheimServer:24 ] The Valheim server is set to public visibility.  It will be visible in the server list.  Players will still need to enter the password to join
+    [2021-05-16 00:47:10.214][INFO  ][startValheimServer:37 ] Valheim server PID is: 14
+    ```
+1.  Wait for the Valheim server to finish starting up.  Then stop the container and verify the exit code is 0:
+    ```bash
+    valheim-server-docker % docker stop valheim-server
+    valheim-server
+    valheim-server-docker % docker inspect valheim-server --format='{{.State.ExitCode}}'
+    0
+    ```
+1.  Delete the container: `docker rm valheim-server`
+
+Be sure to wait for the server to fully start up before stopping the container, otherwise you may see a non-zero exit code.  
+
+## Usage
+
+The automatic update feature removes the need to keep rebuilding the Docker image whenever Valheim has an update, since it will update itself within the container.  This means even if the Docker image's Valheim server is out of date, the container will run at the latest version once the update has completed.  Further, if the container is stopped, it will continue to use the updated Valheim server when started up again.  However, if the container is deleted, then it may go through updates if the Docker image uses an older version of the server.  Existing worlds can continue to be used without issue as long as the right worlds directory is chosen when starting the container.  
+
+You'll first start the server like this:
+
+```bash
+docker run --name=valheim-server -d \
+-v /home/sethmachine/valheim-data:/home/steam/valheim-data \
+--env VALHEIM_SERVER_NAME="OutdatedServer" \
+--env VALHEIM_WORLD_NAME="OutdatedWorld" \
+--env VALHEIM_PASSWORD="HardToGuessPassword" \
+--env VALHEIM_PUBLIC=1 \
+--env VALHEIM_SERVER_UPDATE_ON_START_UP=1 \
+--env VALHEIM_SERVER_AUTO_UPDATE=1 \
+--env VALHEIM_SERVER_AUTO_UPDATE_FREQUENCY=30m \
+valheim/auto-update
+```
+
+At some point the server will stop itself, update, and restart when a new update comes in.  If ever the server is stopped (either you shut it down manually or the host machine was turned off unexpectedly), the container itself will still exist and have the updated server.  Simply start it up again with `docker start valheim-server` (or however the container is named) and it should be up to date.  
+
+If you need to execute a manual update sooner than the auto update, simple stop the container and then start it again.  Make sure `VALHEIM_SERVER_UPDATE_ON_START_UP` is set to 1.  Starting it again will trigger a check for an update immediately.  
+
+
+
+## Final thoughts
+
+We were able to create a system for automatically updating a Valheim server to enable running it truly 24/7 unsupervised.  We organized the different functions of starting, stopping, and updating the Valheim server into separate script files to handle the added complexity of automatic update.  We also examined how to forward signals through multiple processes with Bash.  
+
+The automatic update Docker image is available on Docker Hub and the corresponding Dockerfile and scripts on GitHub:
+
+* Docker Hub: [sethmachineio/valheim-server](https://hub.docker.com/r/sethmachineio/valheim-server)
+* GitHub: [valheim-server-docker](https://github.com/sethmachine/valheim-server-docker)
+
+Feel free to leave a comment if you found this helpful, have any feedback, or are stuck on any parts of this guide.  I'll do my best to respond and help you!  
+
 
 
 

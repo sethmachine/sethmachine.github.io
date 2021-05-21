@@ -8,6 +8,8 @@ tags:
 - Bash
 ---
 
+![Automatic Update for Valheim Server](automatic-update-for-valheim-server-logo.jpg)
+
 ## Introduction
 
 This guides explains how to set up automatic update for a dedicated Valheim server with Docker.  Automatic update is exciting because it minimizes server downtime as a human no longer needs to manually update and restart the server, giving a true 24/7 server uptime experience.    
@@ -57,10 +59,10 @@ Each of these steps is simple to understand but the implementation of each may n
 
 ## Environment for testing
 
-When setting out to build an automatic update system, it is key verify that it behaves as expected before use on an actual server.  Automatic update requires stopping the server, updating it, and starting it up again.  If any of these operations fail, the server will be unusable until an admin is available to correct the issue.  Thus, it is critical to verify these steps work before adding the automatic update feature to a real Valheim server.  This is often how real world software is tested in order to minimize impact customer impact when adding new features.  
+When setting out to build an automatic update system, it is key verify that it behaves as expected before use on an actual server.  Automatic update requires stopping the server, updating it, and starting it up again.  If any of these operations fail, the server will be unusable until an admin is available to correct the issue.  Thus, it is critical to verify these steps work before adding the automatic update feature to a real Valheim server.  This is often how real world software is tested in order to minimize customer impact when adding new features.  
 
-Verifying that automatic update works is tricky, (1) since we cannot predict when a new update is coming in (2) and a fresh download of the Valheim server with Steamcmd will always yield the latest version.  To verify that our automatic update works, we can use an outdated version of the Valheim server.  If our code is written correctly, then (1) we expect the server to update to the latest version and (2) we are able to play on the updated server.    
-For testing purposes, I'll be using an outdated copy of the Valheim server (version 0.146.8).  The image is available here: [sethmachineio/valheim-server:0.146.8](https://hub.docker.com/layers/139144633/sethmachineio/valheim-server/0.146.8/images/sha256-ec5e3c4ed64175c6f6ade8fc4762a8a110d1e2bce31fc7453ada65b78b2c12ce?context=explore).  
+Verifying that automatic update works is tricky, since (1) we cannot predict when a new update is coming in and (2) a fresh download of the Valheim server with Steamcmd will always yield the latest version.  To verify that our automatic update works, we can use an outdated version of the Valheim server.  If our code is written correctly, then (1) we expect the server to update to the latest version and (2) we are able to play on the updated server.    
+For testing purposes, I'll be using an outdated copy of the Valheim server (version 0.146.8) so that we can trigger an automatic update.  The image is available here: [sethmachineio/valheim-server:0.146.8](https://hub.docker.com/layers/139144633/sethmachineio/valheim-server/0.146.8/images/sha256-ec5e3c4ed64175c6f6ade8fc4762a8a110d1e2bce31fc7453ada65b78b2c12ce?context=explore).  
 
 ### Logging
 
@@ -90,7 +92,7 @@ Here is how we can setup an environment to test automatic update:
 1.  Copy all of the Valheim server contents from the running image to your local machine.  
 
     ```bash
-    docker cp -r old-valheim:/home/steam/valheim-server/ dev/
+    docker cp old-valheim:/home/steam/valheim-server/ dev/
     ```
 1.  The old server files should now be copied over.  Verify with `ls dev/valheim-server` on your local machine:
     
@@ -210,7 +212,7 @@ We will be using this Dockerfile as a basis for writing automatic update and wil
  
  Of note is the line `"buildid"               "6315977"` which tells us the build ID of the *local* Valheim server.  *Local* here means the copy of the Valheim server we have downloaded already (as opposed to the latest or *remote* version).   Build ID [6315977](https://steamdb.info/patchnotes/6315977/) means we're about 3 builds behind, the latest being [6508109](https://steamdb.info/patchnotes/6508109/) (as of April 19th, 2021).  
  
- We will extract the build ID using a text processing tool called [pcregrep](https://www.pcre.org/).  pcregrep allows writing regular expressions that can match patterns that span multiple lines.  The multiline functionality will be needed later for finding the remote/latest build ID.  Alternative approaches include: (1) Python libaries to parse the ACF format and (2) native Linux [grep](https://www.gnu.org/software/grep/manual/grep.html).  We won't use Python in order to minimize our dependency footprint (it can add nearly 1 GB to the Docker image size).  grep is not an option as it does not support multiline pattern matching which will be needed soon.  
+ We will extract the build ID using a text processing tool called [pcregrep](https://www.pcre.org/).  pcregrep allows writing regular expressions that can match patterns that span multiple lines.  The multiline functionality will be needed later for finding the remote/latest build ID.  Alternative approaches include: (1) Python libaries to parse the ACF format and (2) native Linux [grep](https://www.gnu.org/software/grep/manual/grep.html).  We won't use Python in order to minimize our dependency footprint (it can add nearly 1 GB to the Docker image size).  grep is not an option as it does not support multiline pattern matching which will be needed.  
  
  Now to get the local build ID programmatically:
  
@@ -234,7 +236,7 @@ We will be using this Dockerfile as a basis for writing automatic update and wil
     ```
 1.  The line with the build ID is now returned.  We only want the numbers, so we need to modify the regular expression further: `cat appmanifest_896660.acf | pcregrep -o1 -M '"buildid".*"([0-9]+)"'`.  This should output "6315977"!  
 
-The regular expression essentially says: find the line with build ID and then give me back all the numbers surrounded by quotes.  Don't worry if the regular expression looks like voodoo; what is important is that now we have a reliable way to get the local build ID!  
+The regular expression essentially says: find the line with build ID and then give me back all the numbers surrounded by quotes.  Don't worry if the regular expression looks like voodoo; what is important is that we now have a reliable way to get the local build ID!  
 
 Now we can reliably find the build ID of our local Valheim server.  If we can find the the latest (remote) build ID and compare this to our local build ID, we can know whether the server needs to be updated (i.e. the build IDs do not match).  
 
@@ -530,7 +532,7 @@ Note that the script references environment variables defined in both the Docker
 
 In the previous section we were able to find the local build ID and the remote build ID of the Valheim server.  When the local build ID and the remote build ID are not the same, it means our local Valheim server needs to be updated.  Ideally we would want to update as soon as the remote build ID changed.  However, there's no magical way to know that the remote build ID has changed other than by running `findAndSetRemoteValheimServerBuildId` over and over again (as an aside, [SteamWebPipes](findAndSetRemoteValheimServerBuildId) would allow for listening for new builds but it is far too complex to cover here).  This means we will need some mechanism to periodically query for the remote build ID and then compare to the local build ID while the Valheim server is running.  
 
-This is the update loop, which every so often will need to query Steam to find the latest build ID and compare to the build ID of the current server.  The update loop needs to run forever and will only terminate if the Docker container itself is stopped.  In Bash, the loop might start to like like this:
+This is the update loop, which every so often will need to query Steam to find the latest build ID and compare to the build ID of the current server.  The update loop needs to run forever and will only terminate if the Docker container itself is stopped.  In Bash, the loop might start to look like this:
 
 ```bash
 while true
@@ -957,6 +959,7 @@ Rebuild the Docker image with the updated Dockerfile and scripts, e.g. `docker b
 1.  Run the image in a new container using these parameters:
     ```bash
     docker run --name=valheim-server -d \
+    -p 2456:2456/udp -p 2457:2457/udp -p 2458:2458/udp \
     -v /home/sethmachine/valheim-data:/home/steam/valheim-data \
     --env VALHEIM_SERVER_NAME="OutdatedServer" \
     --env VALHEIM_WORLD_NAME="OutdatedWorld" \
@@ -966,7 +969,11 @@ Rebuild the Docker image with the updated Dockerfile and scripts, e.g. `docker b
     --env VALHEIM_SERVER_AUTO_UPDATE_FREQUENCY=10s \
     valheim/auto-update
     ```
-    Note you will need to substitute the local worlds directory `/home/sethmachine/valheim-data` with an actual directory on your computer.  `VALHEIM_SERVER_UPDATE_ON_START_UP` is set to 0 so we can test the update loop.  `VALHEIM_SERVER_AUTO_UPDATE_FREQUENCY` is set to 10 seconds to give us time to tail log files right before the update happens.    
+    Note you will need to substitute the local worlds directory `/home/sethmachine/valheim-data` with an actual directory on your computer.  `VALHEIM_SERVER_UPDATE_ON_START_UP` is set to 0 so we can test the update loop.  `VALHEIM_SERVER_AUTO_UPDATE_FREQUENCY` is set to 10 seconds to give us time to tail log files right before the update happens.
+1.  Optionally, choose a longer frequency update such as 5 minutes (5m) and verify the server is outdated in the Valheim list.  Five minutes is chosen so the server can fully start and be listed on Valheim.  Attempting to join it should result in an error.   
+
+    ![Outdated Valheim Server](valheim-server-outdated.png)
+    
 1.  Tail the logs of the running container in a separate terminal, e.g. `docker logs -f valheim-server`.  You should see output like below (note yours may be colored differently):
     ```bash
     [2021-05-15 15:11:26.426][WARN  ][main:51 ] Experimental auto update is enabled.  The server will automatically update and restart when a new version is detected
@@ -1035,6 +1042,10 @@ Rebuild the Docker image with the updated Dockerfile and scripts, e.g. `docker b
     [2021-05-15 15:12:35.529][INFO  ][findAndSetRemoteValheimServerBuildId:56 ] The remote server build ID is 6663905
     [2021-05-15 15:12:35.533][INFO  ][checkForAndUpdateValheimServer:94 ] The Valheim server is already up to date with build ID 6663905
     ```
+1.  Optionally, verify the server is updated in the list and attempt to join it once it has started up again.
+
+    ![Updated Valheim Server](valheim-server-after-auto-update.png)
+
 1.  We should verify that the server stops gracefully after an update.  Run `docker stop valheim-server` and see this output:
     
     ```bash
@@ -1058,6 +1069,7 @@ Each time the server is started up, we can check for update rather than wait on 
 1.  Run the image in a new container using these parameters:
     ```bash
     docker run --name=valheim-server -d \
+    -p 2456:2456/udp -p 2457:2457/udp -p 2458:2458/udp \
     -v /home/sethmachine/valheim-data:/home/steam/valheim-data \
     --env VALHEIM_SERVER_NAME="OutdatedServer" \
     --env VALHEIM_WORLD_NAME="OutdatedWorld" \
@@ -1107,13 +1119,14 @@ Each time the server is started up, we can check for update rather than wait on 
 
 If you observe similar output, it means the update on startup feature is working as expected.   
 
-### Verify automatic update can be disabled
+### Verify disabling auto update
 
-This is to confirm that the server still works if automatic update is turned off.  Turing off automatic update may be useful if you want to run a specific version of the Valheim server, or otherwise want to control when updates happen.  In most cases for a server running 24/7, keeping automatic update on is recommended.
+This is to confirm that the server still works if automatic update is turned off.  Turning off automatic update may be useful if you want to run a specific version of the Valheim server, or otherwise want to control when updates happen.  In most cases for a server running 24/7, keeping automatic update on is recommended.
 
 1.  Run the image in a new container using these parameters:
     ```bash
     docker run --name=valheim-server -d \
+    -p 2456:2456/udp -p 2457:2457/udp -p 2458:2458/udp \
     -v /home/sethmachine/valheim-data:/home/steam/valheim-data \
     --env VALHEIM_SERVER_NAME="OutdatedServer" \
     --env VALHEIM_WORLD_NAME="OutdatedWorld" \
@@ -1152,6 +1165,8 @@ You'll first start the server like this:
 
 ```bash
 docker run --name=valheim-server -d \
+--restart always \
+-p 2456:2456/udp -p 2457:2457/udp -p 2458:2458/udp \
 -v /home/sethmachine/valheim-data:/home/steam/valheim-data \
 --env VALHEIM_SERVER_NAME="OutdatedServer" \
 --env VALHEIM_WORLD_NAME="OutdatedWorld" \
@@ -1179,11 +1194,3 @@ The automatic update Docker image is available on Docker Hub and the correspondi
 * GitHub: [valheim-server-docker](https://github.com/sethmachine/valheim-server-docker)
 
 Feel free to leave a comment if you found this helpful, have any feedback, or are stuck on any parts of this guide.  I'll do my best to respond and help you!  
-
-
-
-
-
-  
-
-       

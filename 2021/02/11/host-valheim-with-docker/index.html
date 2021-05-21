@@ -131,14 +131,20 @@
                 </span>
             
               <span class="span--tag">
+                  <a href="/tags/Dedicated-Server/" title="Dedicated Server">
+                    <b>#</b> Dedicated Server
+                  </a>
+                </span>
+            
+              <span class="span--tag">
                   <a href="/tags/Port-Forwarding/" title="Port Forwarding">
                     <b>#</b> Port Forwarding
                   </a>
                 </span>
             
               <span class="span--tag">
-                  <a href="/tags/Dedicated-Server/" title="Dedicated Server">
-                    <b>#</b> Dedicated Server
+                  <a href="/tags/Bash/" title="Bash}">
+                    <b>#</b> Bash}
                   </a>
                 </span>
             
@@ -190,7 +196,7 @@
 <ul>
 <li>The Docker container will stop running if you exit (e.g. CTRL+D)</li>
 <li>While the container is running, use <code>docker ps</code> to find its container ID (host machine terminal)</li>
-<li>The running container is named <code>steamcmd</code> (from <code>--name=steamcmd</code>).  </li>
+<li>The running container is named <code>steamcmd</code> (from <code>-=-name=steamcmd</code>).  </li>
 <li>The same container can be re-activated by using <code>docker start --interactive steamcmd</code></li>
 <li>To delete the named container, use <code>docker rm steamcmd</code>.  </li>
 </ul>
@@ -201,7 +207,7 @@
 <p>In the current directory, there is now a <code>valheimserver/</code> folder:</p>
 <figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">steam@cf87295af3ac:~/steamcmd$ ls valheimserver/</span><br><span class="line"> LinuxPlayer_s.debug   UnityPlayer_s.debug                    linux64           start_server.sh         steam_appid.txt   steamclient.so          valheim_server_Data</span><br><span class="line"> UnityPlayer.so       &#x27;Valheim Dedicated Server Manual.pdf&#x27;   server_exit.drp   start_server_xterm.sh   steamapps         valheim_server.x86_64</span><br></pre></td></tr></table></figure>
 <p>The server install includes a manual which I’ve also made available here: <a href="/misc/valheim-dedicated-server-manual.pdf">Valheim Dedicated Server Manual</a> (disclaimer: the manual is subject to change so this link may become outdated). The manual explains how to run the Valheim server and its different configurable options.  Below is the command I used to copy the manual from the running Docker container. This command is run from the host machine’s terminal and not within the Docker container.  </p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">docker cp steamcmd:/home/steam/steamcmd/valheimserver/<span class="string">&#x27;Valheim Dedicated Server Manual.pdf&#x27;</span> ~/desktop</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">docker cp steamcmd:&#x2F;home&#x2F;steam&#x2F;steamcmd&#x2F;valheimserver&#x2F;&#39;Valheim Dedicated Server Manual.pdf&#39; ~&#x2F;desktop</span><br></pre></td></tr></table></figure>
 <p>According to the manual, we should make a copy of <code>start_server.sh</code> and supply it with our parameters. The line to edit:</p>
 <figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">./valheim_server.x86_64 -name &quot;My server&quot; -port 2456 -world &quot;Dedicated&quot; -password &quot;secret&quot;</span><br></pre></td></tr></table></figure>
 <p>The parameters (also explained in the manual):</p>
@@ -221,6 +227,7 @@
 <li>Copy back to the Docker container: <code>docker cp example-start-server.sh steamcmd:/home/steam/steamcmd/valheimserver</code></li>
 </ul>
 </li>
+<li>(Linux/macOS) Make the script executable by running <code>chmod +x example-start-server.sh</code></li>
 </ul>
 <p>After editing this is what my <code>example-start-server.sh</code> looks like (I removed the comments):</p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">export</span> templdpath=<span class="variable">$LD_LIBRARY_PATH</span></span><br><span class="line"><span class="built_in">export</span> LD_LIBRARY_PATH=./linux64:<span class="variable">$LD_LIBRARY_PATH</span></span><br><span class="line"><span class="built_in">export</span> SteamAppId=892970</span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;Starting server PRESS CTRL-C to exit&quot;</span></span><br><span class="line"></span><br><span class="line">./valheim_server.x86_64 -name <span class="string">&quot;Example Server&quot;</span> -port 2456 -world <span class="string">&quot;HelloWorld&quot;</span> -password <span class="string">&quot;password123&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">export</span> LD_LIBRARY_PATH=<span class="variable">$templdpath</span></span><br></pre></td></tr></table></figure>
@@ -237,6 +244,7 @@
 <p>I added comments to explain each part of this new Dockerfile for building a Valheim server image. Of note is that behavior is customized by passing in different values for the environment variables, e.g. one could change the world name by passing in <code>--env VALHEIM_WORLD_NAME=&quot;AWholeNewWorld&quot;</code> when executing <code>docker run</code>.  </p>
 <p>What does our <code>start-valheim-server.sh</code> look like?  Below is what I’ve come up with:</p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="meta">#!/usr/bin/env bash</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># docker sends a SIGTERM and then SIGKILL to the main process</span></span><br><span class="line"><span class="comment"># Valheim needs a SIGINT (CTRL+C) to terminate properly</span></span><br><span class="line"><span class="keyword">function</span> shutdownValheimGracefully()</span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;Valheim server PID is: <span class="variable">$1</span>&quot;</span></span><br><span class="line">    <span class="comment"># send a SIGINT to shut down the Valheim server gracefully</span></span><br><span class="line">    <span class="built_in">kill</span> -2 <span class="variable">$1</span></span><br><span class="line">    <span class="comment"># wait for Valheim to terminate before shutting down the container</span></span><br><span class="line">    <span class="built_in">wait</span> <span class="variable">$1</span></span><br><span class="line">    <span class="built_in">exit</span> 0</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># catch Docker&#x27;s SIGTERM, then then a SIGINT to the Valheim server process</span></span><br><span class="line"><span class="built_in">trap</span> <span class="string">&#x27;shutdownValheimGracefully &quot;$VALHEIM_PID&quot;&#x27;</span> SIGTERM</span><br><span class="line"></span><br><span class="line"><span class="built_in">export</span> templdpath=<span class="variable">$LD_LIBRARY_PATH</span></span><br><span class="line"><span class="built_in">export</span> LD_LIBRARY_PATH=./linux64:<span class="variable">$LD_LIBRARY_PATH</span></span><br><span class="line"><span class="built_in">export</span> SteamAppId=892970</span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;Starting server PRESS CTRL-C to exit&quot;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;LD_LIBRARY_PATH: <span class="variable">$LD_LIBRARY_PATH</span>&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;Valheim port is: <span class="variable">$VALHEIM_PORT</span>&quot;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;Valheim server name is: <span class="variable">$VALHEIM_SERVER_NAME</span>&quot;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;Valheim world name is: <span class="variable">$VALHEIM_WORLD_NAME</span>&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">cd</span> <span class="variable">$VALHEIM_SERVER_DIR</span></span><br><span class="line"><span class="comment"># start the server as a background process to get its PID (&quot;&amp;&quot; at end of command)</span></span><br><span class="line"><span class="comment"># &quot;&amp;&gt;&gt;&quot; means append all stdout and stderr to the log file</span></span><br><span class="line">./valheim_server.x86_64 -name <span class="variable">$VALHEIM_SERVER_NAME</span> \</span><br><span class="line">-port <span class="variable">$VALHEIM_PORT</span> \</span><br><span class="line">-world <span class="variable">$VALHEIM_WORLD_NAME</span> \</span><br><span class="line">-password <span class="variable">$VALHEIM_PASSWORD</span> \</span><br><span class="line">-savedir <span class="variable">$VALHEIM_DATA_DIR</span> &amp;&gt;&gt; /home/steam/valheim-data/valheim-logs.txt &amp;</span><br><span class="line">VALHEIM_PID=$!</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;Valheim server PID is: <span class="variable">$VALHEIM_PID</span>&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># since the server is run in the background, this is needed to keep the main process from exiting</span></span><br><span class="line"><span class="keyword">while</span> <span class="built_in">wait</span> $!; [ $? != 0 ]; <span class="keyword">do</span> <span class="literal">true</span>; <span class="keyword">done</span></span><br></pre></td></tr></table></figure>
+<p><em>(Linux/macOS) Note you may need to make the script executable by running <code>chmod +x start-valheim-server.sh</code></em></p>
 <p>This script is mostly a copy of the original <code>start_server.sh</code> script that comes with Valheim server installation.  I’ve added comments to explain some of the changes made to accommodate running the server in Docker. Most importantly is providing a graceful shutdown to the running Valheim server, which needs a <code>SIGINT</code> signal to properly terminate (equivalent to hitting CTRL+C when running the server manually). Docker sends a <code>SIGTERM</code> signal by default. This script traps the <code>SIGTERM</code> signal, and then sends a <code>SIGINT</code> signal to the Valheim server process (the <code>kill -2</code> command) before exiting properly.  Without this behavior, the server would not terminate properly and thus world data would not be saved completely. For more background on why this is necessary, see this wonderful article: <a target="_blank" rel="noopener" href="https://www.ctl.io/developers/blog/post/gracefully-stopping-docker-containers/">Gracefully Stopping Docker Containers</a>.  </p>
 <p>To build our image, create a new directory on the host machine and create two files in it called <code>Dockerfile</code> and <code>start-valheim-server.sh</code>. <code>Dockerfile</code> should be exactly the contents of the Dockerfile I provided above, and likewise for the custom start script. Note the file to build the Docker image <strong>must</strong> be named <code>Dockerfile</code>. On the host terminal, enter the directory and build the new image using <a target="_blank" rel="noopener" href="https://docs.docker.com/engine/reference/commandline/build/">docker build</a>:</p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sethmachine docker % <span class="built_in">pwd</span></span><br><span class="line">/home/sethmachine/valheim/docker</span><br><span class="line">sethmachine docker % ls</span><br><span class="line">Dockerfile              start-valheim-server.sh</span><br><span class="line">sethmachine docker % docker build -t sethmachine/valheim-server .</span><br><span class="line">[+] Building 0.2s (10/10) FINISHED                                                                                                                                          </span><br><span class="line"> =&gt; [internal] load build definition from Dockerfile                                                                                                                   0.0s</span><br><span class="line"> =&gt; =&gt; transferring dockerfile: 1.15kB                                                                                                                                 0.0s</span><br><span class="line"> =&gt; [internal] load .dockerignore                                                                                                                                      0.0s</span><br><span class="line"> =&gt; =&gt; transferring context: 2B                                                                                                                                        0.0s</span><br><span class="line"> =&gt; [internal] load metadata <span class="keyword">for</span> docker.io/cm2network/steamcmd:latest                                                                                                  0.0s</span><br><span class="line"> =&gt; [1/5] FROM docker.io/cm2network/steamcmd                                                                                                                           0.0s</span><br><span class="line"> =&gt; [internal] load build context                                                                                                                                      0.0s</span><br><span class="line"> =&gt; =&gt; transferring context: 1.03kB                                                                                                                                    0.0s</span><br><span class="line"> =&gt; CACHED [2/5] RUN ./steamcmd.sh +login anonymous +force_install_dir /home/steam/valheim-server +app_update 896660 validate +<span class="built_in">exit</span>                                    0.0s</span><br><span class="line"> =&gt; CACHED [3/5] RUN apt-get update &amp;&amp; apt-get install -y procps                                                                                                       0.0s</span><br><span class="line"> =&gt; [4/5] COPY start-valheim-server.sh /home/steam/valheim-server                                                                                                      0.0s</span><br><span class="line"> =&gt; [5/5] WORKDIR /home/steam/valheim-server                                                                                                                           0.0s</span><br><span class="line"> =&gt; exporting to image                                                                                                                                                 0.0s</span><br><span class="line"> =&gt; =&gt; exporting layers                                                                                                                                                0.0s</span><br><span class="line"> =&gt; =&gt; writing image sha256:da020f90db05f93dfbcd9f0a2489cb5bcaa6baf9ac2bf9a84a37511c47384972                                                                           0.0s</span><br><span class="line"> =&gt; =&gt; naming to docker.io/sethmachine/valheim-server                                                                                                                   0.0s </span><br></pre></td></tr></table></figure>
@@ -366,14 +374,20 @@
                     </span>
                 
                   <span class="span--tag">
+                      <a href="/tags/Dedicated-Server/" title="Dedicated Server">
+                        <b>#</b> Dedicated Server
+                      </a>
+                    </span>
+                
+                  <span class="span--tag">
                       <a href="/tags/Port-Forwarding/" title="Port Forwarding">
                         <b>#</b> Port Forwarding
                       </a>
                     </span>
                 
                   <span class="span--tag">
-                      <a href="/tags/Dedicated-Server/" title="Dedicated Server">
-                        <b>#</b> Dedicated Server
+                      <a href="/tags/Bash/" title="Bash}">
+                        <b>#</b> Bash}
                       </a>
                     </span>
                 
@@ -381,6 +395,11 @@
             
           </div>
           <div class="post-foot-prev">
+            
+              <a href="/2021/05/21/automatic-update-for-valheim-server/" target="_self">
+                <span>Next</span>
+                <i class="iconfont icon-chevronright"></i>
+              </a>
             
           </div>
         </div>

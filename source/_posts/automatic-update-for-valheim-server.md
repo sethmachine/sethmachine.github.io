@@ -25,9 +25,9 @@ If you're quite familiar with Valheim servers, Docker, and Bash, feel free to ju
 
 The idea behind automatic update is simple: if there's a newer version of the Valheim server, upgrade the current server to it.  Updating the Valheim server is necessary due to Valheim's client-server model: whenever the game gets new content, the servers also get updates.  Further, updates to the game are pushed unilaterally--players have no choice whether to update or not.  If there is a version mismatch between a game client and a server, players cannot join the server!  This means there is no way around updating the server.  
 
-The "easy" way to do the update is have the human admin be notified when an update is available.  The human admin then needs to shut down the server, perform the update, and then restart the server.  These are all manual steps that have a single point of failure: the human admin needs to be available.  Imagine the admin is sick, loses internet connection, or otherwise is unavailable for a longer period of time; there is the potential for unacceptable downtime for a 24/7 server.  
+The "easy" way to do the update is have the human admin be notified when an update is available.  The human admin needs to shut down the server, perform the update, and then restart the server.  These are all manual steps that have a single point of failure: the human admin needs to be available.  Imagine the admin is sick, loses internet connection, or otherwise is unavailable for a longer period of time; there is the potential for unacceptable downtime for a dedicated server.  
 
-Automatic update further reduces manual administration of the server since no human needs to be involved, allowing it to be closer to a true 24/7 uptime.  Valheim is still in its infancy and we can continue to expect a stream of new content and bug fixes that automatic update will handle without friction.  
+Automatic update further reduces manual administration of the server since no human needs to be involved, allowing it to be closer to a true 24/7 uptime experience.  Valheim is still in its infancy and we can continue to expect a stream of new content and bug fixes that automatic update will handle without friction.  
 
 In summary:
 
@@ -454,7 +454,7 @@ The relevant section of the output now looks like:
 
 ```
 
-To extract the latest build ID we will use regular expressions again.  This time the regular expression will need to span multiple lines (we want the "buildid" inside "public" and not any other "buildid" lines).  This is why pcregrep is being used over vanilla grep; the latter does not support matching across multiple lines).  As an aside, the actual output format is called [VDF (Valve Key Files Format)](https://developer.valvesoftware.com/wiki/KeyValues).  Unfortunately, there is no Linux package to parse this VDF files (though Python libraries do exist, e.g. [ValvePython](https://github.com/ValvePython/vdf)).   
+To extract the latest build ID we will use regular expressions again.  This time the regular expression will need to span multiple lines (we want the "buildid" inside "public" and not any other "buildid" lines).  As an aside, the actual output format is called [VDF (Valve Key Files Format)](https://developer.valvesoftware.com/wiki/KeyValues).  Unfortunately, there is no Linux package to parse VDF (though Python libraries do exist, e.g. [ValvePython](https://github.com/ValvePython/vdf)).   
 
 Here is what the regular expression looks like that pulls out the public build ID:
 

@@ -24,7 +24,7 @@ favicon:
 # 用户头像与昵称
 avatar:
   author_photo: /images/seth-datathon-square2.jpg
-  author_nickname: Seth Dworman
+  author_nickname: sethmachine
   path: /
 
 # Google 分析

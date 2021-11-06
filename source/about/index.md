@@ -32,5 +32,5 @@ Things I like outside of tech include:
 
 ## Contact
 
-* Email: sdworman at brandeis.edu
+* Email: sethmachine01 at gmail.com
 * Resume: Please reach out to me via email to request a resume.

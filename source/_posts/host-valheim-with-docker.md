@@ -7,7 +7,7 @@ tags:
 - Steam
 - Port Forwarding
 - Dedicated Server
-- Bash}
+- Bash
 ---
 ## Introduction
 

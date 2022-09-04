@@ -1,0 +1,3 @@
+[submodule "themes/hexo-theme-oranges"]
+	path = themes/hexo-theme-oranges
+	url = https://github.com/sethmachine/hexo-theme-oranges.git

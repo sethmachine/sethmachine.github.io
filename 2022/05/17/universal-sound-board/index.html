@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en" color-mode="light">
+
+  <head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="keywords" content="" />
+  <meta name="author" content="Seth Dworman" />
+  <meta name="description" content="" />
+  
+  
+  <title>
+    
+      Universal Sound Board 
+      
+      
+      |
+    
+     Seth&#39;s blog
+  </title>
+
+  
+    <link rel="apple-touch-icon" href="/images/icons8-espresso-cup-100-newest.png">
+    <link rel="icon" href="/images/icons8-espresso-cup-100-newest.png">
+  
+
+  <!-- Raleway-Font -->
+  <link href="https://fonts.googleapis.com/css?family=Raleway&display=swap" rel="stylesheet">
+
+  <!-- hexo site css -->
+  <link rel="stylesheet" href="/css/main.css" />
+  <link rel="stylesheet" href="//at.alicdn.com/t/font_1886449_67xjft27j1l.css" />
+  <!-- 代码块风格 -->
+  
+
+  <!-- jquery3.3.1 -->
+  
+    <script defer type="text/javascript" src="/plugins/jquery.min.js"></script>
+  
+
+  <!-- fancybox -->
+  
+    <link href="/plugins/jquery.fancybox.min.css" rel="stylesheet">
+    <script defer type="text/javascript" src="/plugins/jquery.fancybox.min.js"></script>
+  
+  
+<script src="/js/fancybox.js"></script>
+
+
+  
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-FG2L3F19SM"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-FG2L3F19SM');
+    </script>
+  
+
+  
+
+  <script>
+    var html = document.documentElement
+    const colorMode = localStorage.getItem('color-mode')
+    if (colorMode) {
+      document.documentElement.setAttribute('color-mode', colorMode)
+    }
+  </script>
+<meta name="generator" content="Hexo 5.4.2"></head>
+
+
+  <body>
+    <div id="app">
+      <div class="header">
+  <div class="avatar">
+    <a href="/">
+      <!-- 头像取消懒加载，添加no-lazy -->
+      
+        <img src="/images/seth-datathon-square2.jpg" alt="">
+      
+    </a>
+    <div class="nickname"><a href="/">sethmachine</a></div>
+  </div>
+  <div class="navbar">
+    <ul>
+      
+        <li class="nav-item" data-path="/">
+          <a href="/">Blog</a>
+        </li>
+      
+        <li class="nav-item" data-path="/about/">
+          <a href="/about/">About</a>
+        </li>
+      
+        <li class="nav-item" data-path="/tags/">
+          <a href="/tags/">Tags</a>
+        </li>
+      
+    </ul>
+  </div>
+</div>
+
+
+<script src="/js/activeNav.js"></script>
+
+
+
+      <div class="flex-container">
+        <!-- 文章详情页，展示文章具体内容，url形式：https://yoursite/文章标题/ -->
+<!-- 同时为「标签tag」，「朋友friend」，「分类categories」，「关于about」页面的承载页面，具体展示取决于page.type -->
+
+
+  <!-- LaTex Display -->
+
+  
+    <script async type="text/javascript" src="/plugins/mathjax/tex-chtml.js"></script>
+  
+  <script>
+    MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']]
+      }
+    }
+  </script>
+
+
+
+
+
+  <!-- clipboard -->
+
+  
+    <script async type="text/javascript" src="/plugins/clipboard.min.js"></script>
+  
+  
+<script src="/js/codeCopy.js"></script>
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  <!-- 文章内容页 url形式：https://yoursite/文章标题/ -->
+  <div class="container post-details" id="post-details">
+    <div class="post-content">
+      <div class="post-title">Universal Sound Board</div>
+      <div class="post-attach">
+        <span class="post-pubtime">
+          <i class="iconfont icon-updatetime mr-10" title="Update time"></i>
+          2022-05-17 09:00:00
+        </span>
+        
+              <span class="post-tags">
+                <i class="iconfont icon-tags mr-10" title="Tags"></i>
+                
+                <span class="span--tag mr-8">
+                  <a href="/tags/Audio/" title="Audio">
+                    #Audio
+                  </a>
+                </span>
+                
+                <span class="span--tag mr-8">
+                  <a href="/tags/Microphone/" title="Microphone">
+                    #Microphone
+                  </a>
+                </span>
+                
+                <span class="span--tag mr-8">
+                  <a href="/tags/Soundboard/" title="Soundboard">
+                    #Soundboard
+                  </a>
+                </span>
+                
+                <span class="span--tag mr-8">
+                  <a href="/tags/Java/" title="Java">
+                    #Java
+                  </a>
+                </span>
+                
+                <span class="span--tag mr-8">
+                  <a href="/tags/Dropwizard/" title="Dropwizard">
+                    #Dropwizard
+                  </a>
+                </span>
+                
+                <span class="span--tag mr-8">
+                  <a href="/tags/Derby/" title="Derby">
+                    #Derby
+                  </a>
+                </span>
+                
+                <span class="span--tag mr-8">
+                  <a href="/tags/Discord/" title="Discord">
+                    #Discord
+                  </a>
+                </span>
+                
+                <span class="span--tag mr-8">
+                  <a href="/tags/Zoom/" title="Zoom">
+                    #Zoom
+                  </a>
+                </span>
+                
+                <span class="span--tag mr-8">
+                  <a href="/tags/Memes/" title="Memes">
+                    #Memes
+                  </a>
+                </span>
+                
+                <span class="span--tag mr-8">
+                  <a href="/tags/Emojis/" title="Emojis">
+                    #Emojis
+                  </a>
+                </span>
+                
+              </span>
+          
+      </div>
+      <div class="markdown-body">
+        <p><img src="/2022/05/17/universal-sound-board/USBD-diagram-revised-2022-05-16.jpg" alt="Universal Sound Board Diagram"></p>
+<h2 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h2><p>Ever wonder how you might play audio clips to your listeners as if it came through your microphone?  I’ve wondered this a lot myself, and after many long, frustrating, and fruitless searches on the internet, Stack Overflow, Reddit, etc., I decided to write my own software to do just that.  My solution is called <a target="_blank" rel="noopener" href="https://github.com/sethmachine/universal-sound-board">UniversalSoundBoard</a> and uses the <a target="_blank" rel="noopener" href="https://docs.oracle.com/javase/tutorial/sound/">Java Sound API</a> with virtual audio devices to play arbitrary audio as input to the microphone.  </p>
+<p>This functionality is provided by various <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Soundboard_(computer_program)">soundboard programs</a>, which are already available in a variety of paid, freemium, or open source flavors.  However, every implementation I came across lacked at least one of these essential features:</p>
+<ol>
+<li> A programmatic interface to completely control the soundboard (no GUI required)</li>
+<li> 100% open source</li>
+<li> Free as in free (no freemium, trials, nagware, etc.)</li>
+<li> App agnostic: it works on any voice chat application (Discord, Zoom, etc.)</li>
+<li> OS agnostic: it works on any major operating system (Windows, macOS)</li>
+</ol>
+<p>UniversalSoundBoard <strong>provides all of these features</strong>.  </p>
+<p>My article covers the following topics:</p>
+<ul>
+<li><a href="#What-is-a-soundboard">What is a soundboard</a></li>
+<li><a href="#Why-UniversalSoundBoard">Why UniversalSoundBoard</a></li>
+<li><a href="#How-it-works">How UniversalSoundBoard works</a></li>
+<li><a href="#Next-steps">Next steps and future work for UniversalSoundBoard</a></li>
+</ul>
+<p>My ultimate vision is to build a soundboard that plays audio clips from a vast library, triggered by fuzzy matching typed commands like <a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=oynJcSnLSI4&t=12s">“@troll in the dungeon”</a>, rather than having to input a predefined hotkey combination or manually choose the file.  </p>
+<p>If you’d like to dive straight into the code and tutorial, check out the open source GitHub repo.  I’ve provided a detailed technical guide on getting started.  </p>
+<ul>
+<li>GitHub: <a target="_blank" rel="noopener" href="https://github.com/sethmachine/universal-sound-board">https://github.com/sethmachine/universal-sound-board</a></li>
+</ul>
+<h2 id="What-is-a-soundboard"><a href="#What-is-a-soundboard" class="headerlink" title="What is a soundboard?"></a>What is a soundboard?</h2><p><img src="/2022/05/17/universal-sound-board/troll-dungeon.gif" alt="Troll in the dungeon"></p>
+<p>Taken from the <a href="(https://en.wikipedia.org/wiki/Soundboard_(computer_program))">Wikipedia article</a>:</p>
+<blockquote>
+<p>A soundboard is a computer program, Web application, or device…that catalogues and plays many audio clips…The soundboard is also used to facilitate humor, highlighting some of celebrities’ more unusual utterances, or allowing for juxtaposition or even “composition” of quotes and sounds that would otherwise not go together.</p>
+</blockquote>
+<p>In summary: </p>
+<ul>
+<li>Soundboards can be used to be great comedic affect, and act as form of audio meme/emoji.</li>
+<li>Soundboards “catalogue and play many audio clips”–soundboards allow for playing a single audio clip from a potentially massive library of sounds.  </li>
+<li>Soundboards are natural companions for online multiplayer video games, where one is immersed and constant text chat is not feasible</li>
+</ul>
+<h2 id="Why-UniversalSoundBoard"><a href="#Why-UniversalSoundBoard" class="headerlink" title="Why UniversalSoundBoard"></a>Why UniversalSoundBoard</h2><p>Why build or use UniversalSoundBoard (USBD) when there many other higher quality soundboards available?  USBD is a free, 100% open source, programmable, app and OS agnostic soundboard program.  No other soundboard I found in my search met all 5 criteria.  </p>
+<h3 id="Programmable"><a href="#Programmable" class="headerlink" title="Programmable"></a>Programmable</h3><p>USBD is written as a <a target="_blank" rel="noopener" href="https://www.dropwizard.io/en/latest/">Dropwizard</a> RESTful webservice and provides an HTTP API to programmatically control the entire soundboard.  One can issue GET requests to figure out what sound devices (microphones, speakers) are installed, make POST requests to use with with certain audio formats, and make additional POST requests to play any audio file.  The USBD API is extendable and can be used without being aware of nuances of the underlying sound APIs.  Further, one could build a GUI by implementing the USBD HTTP API.  </p>
+<p>In my search, I only came across soundboard software that were GUIs with no advertised programmatic interface</p>
+<h3 id="100-open-source"><a href="#100-open-source" class="headerlink" title="100% open source"></a>100% open source</h3><p>UniversalSoundBoard is open source.  Anyone can contribute to it, learn from, or build their own software on top of it.  </p>
+<p>There are some free soundboard programs, but they aren’t open sourced and it makes learning from them hard.  By open sourcing this, I hope others are able to learn from my work and result in saving themselves the countless hours of research that I had to do.  </p>
+<h3 id="100-free"><a href="#100-free" class="headerlink" title="100% free"></a>100% free</h3><p>The higher quality soundboard software are usually paid (and also still don’t offer a programmatic API?!).  My use case for a soundboard is quite simple: programmatically play an audio file through the microphone anytime.  I have no need for more intricate or advanced audio setups, therefore others who desire simple functionality shouldn’t have to pay for features they don’t need.   </p>
+<h3 id="App-agnostic"><a href="#App-agnostic" class="headerlink" title="App agnostic"></a>App agnostic</h3><p>Discord, Zoom, and other applications do offer integration APIs to build powerful customizations.  However, this comes with a penalty of learning a 3rd party API and being restricted to what is offered.  Further, this require maintaining one or more implementations of the same software.  </p>
+<p>Since the functionality of USBD is so simple (play an audio file through the microphone), there is no need to build integrations.  Instead, a single standalone app can interface with the OS sound system, which is then used by any voice chat application.  </p>
+<p>USBD accomplishes this by use the Java Sound API and leveraging virtual audio devices.  </p>
+<h3 id="OS-agnostic"><a href="#OS-agnostic" class="headerlink" title="OS agnostic"></a>OS agnostic</h3><p>Some soundboard software only works on Windows, others only work on macOS, and some only on Linux.  I happen to jump between macOS and Windows a lot when I’m gaming, and it’d be nice to just use a single software on both.  </p>
+<p>USBD accomplishes this by being 100% Java.  Meaning once it’s compiled, it should theoretically be able to run on any Java compatible operating system.  Indeed, I can compile USBD on macOS and the jar runs perfectly on my Windows machine.  In theory Linux should also work, though I have yet to test this (I welcome any readers confirming this!).  </p>
+<h2 id="How-it-works"><a href="#How-it-works" class="headerlink" title="How it works"></a>How it works</h2><p>At a high level, USBD works by streaming microphone input and audio file input (separately) into a virtual audio device (VAD).  The VAD receives audio bytes from both streams and automatically turns this into microphone input.  This is made more clear in the following steps:</p>
+<ol>
+<li> USBD runs a background thread that listens to physical microphone input, until muted or turned off.  All microphone input bytes are streamed to a chosen virtual audio device.  </li>
+<li> USBD runs another background thread for each input audio file.  All audio file bytes are streamed to the same virtual audio device as the microphone.  </li>
+<li> Optionally, USBD can simultaneously stream audio file input to physical speakers as well, allowing both ends of the voice chat to hear the audio playback at the same time.  </li>
+<li> The user sets the audio input device (microphone) to the virtual audio device for the voice chat application (e.g. Discord, Zoom)</li>
+</ol>
+<p>In the next sections, I explain the different technologies underlying USBD and how they work together to create a programmable soundboard.  </p>
+<ul>
+<li><a href="#Sinks-and-Sources">Sinks and sources</a>: these are high level abstractions of audio devices that are the building block of USBD</li>
+<li><a href="#Virtual-audio-devices">Virtual audio devices</a>: virtual audio devices allow for turning audio output into audio input</li>
+<li><a href="#API">API</a>: this describes the HTTP API USBD offers to act as a programmable soundboard</li>
+<li><a href="#Technologies">Technologies</a>: this provides a high level overview of the specific technologies USBD uses</li>
+<li><a href="#Systems-Design">Systems Design</a>: this provides detailed systems design diagrams on the main flows of USBD and how it all comes together</li>
+</ul>
+<h3 id="Sinks-and-Sources"><a href="#Sinks-and-Sources" class="headerlink" title="Sinks and Sources"></a>Sinks and Sources</h3><p>USBD organizes audio devices into 2 types: (1) sinks and (2) sources.  These more or less correspond exactly to Java’s notions of (1) <a target="_blank" rel="noopener" href="https://docs.oracle.com/javase/7/docs/api/javax/sound/sampled/TargetDataLine.html">target audio devices</a> and (2) <a target="_blank" rel="noopener" href="https://docs.oracle.com/javase/7/docs/api/javax/sound/sampled/SourceDataLine.html">source audio devices</a>.  I chose to use sink instead of target as I found the naming more intuitive.  This terminology is also heavily influenced by <a target="_blank" rel="noopener" href="https://www.freedesktop.org/wiki/Software/PulseAudio/">PulseAudio</a>.  Thus defined:</p>
+<ul>
+<li>Sink: an audio device that collects audio data and can be read from.  One example is a microphone.  </li>
+<li>Source: an audio device that plays back audio and can be written to.  One example is speakers.</li>
+</ul>
+<p>Since microphones are sinks, they only offer APIs to read any captured audio bytes.  This means there is no direct way to programmatically provide input to a microphone.  This is where a virtual audio device is required.  </p>
+<p>In contrast, sources offer only offer APIs to write audio bytes.  Hence it is trivial to write a Java program to play an audio file on physical speakers.  This is done by streaming audio bytes and using the SourceDataLine write method.  The reverse–capturing audio bytes being sent to a speaker, is not of interest here, since we’ll always know what was played in the sound board program.  </p>
+<p>Some audio devices can offer both sink and source interfaces.  In particular, virtual audio devices can support both sink and source interfaces.  This means they can both receive bytes (like a source/speaker) but also output bytes like a microphone (sink).  More importantly, they can be programmed to automatically take bytes written and turn these into input bytes.  Thus, acting like a microphone that can be written to.  </p>
+<h3 id="Virtual-audio-devices"><a href="#Virtual-audio-devices" class="headerlink" title="Virtual audio devices"></a>Virtual audio devices</h3><p>Virtual audio devices act as programmable audio devices that can receive audio input and provide audio output.  They can be used exactly like physical audio devices when configuring voice chat applications like Discord or Zoom.  However, on their own, they do nothing, because they need a way to receive audio bytes for input or output.  This is because they have no physical apparatus to capture audio or play it back, unlike physical speakers or a built-in microphone.  Instead, other programs must send audio bytes to them.  This is exactly what USBD does: wire a physical audio device to a virtual audio device.  </p>
+<p>Thankfully, there are multiple free and open source virtual audio devices available for all major operating systems.  I’ve tested the ones below with USBD on both Discord and Zoom.  </p>
+<h4 id="Windows"><a href="#Windows" class="headerlink" title="Windows"></a>Windows</h4><ul>
+<li><a target="_blank" rel="noopener" href="https://vb-audio.com/Cable">Virtual Audio Cable</a></li>
+</ul>
+<h4 id="macOS"><a href="#macOS" class="headerlink" title="macOS"></a>macOS</h4><ul>
+<li><a target="_blank" rel="noopener" href="https://vb-audio.com/Cable">Virtual Audio Cable</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/ExistentialAudio/BlackHole">BlackHole</a></li>
+</ul>
+<h3 id="API"><a href="#API" class="headerlink" title="API"></a>API</h3><p>There are many actions USBD needs to support to be a functional programmable soundboard.  Each soundboard action generally corresponds to a single HTTP request.  </p>
+<ol>
+<li><dl><dt><a target="_blank" rel="noopener" href="https://github.com/sethmachine/universal-sound-board/blob/master/src/main/java/io/sethmachine/universalsoundboard/resources/AudioMixerMetadataResource.java#L31-L39">GET /audio-mixer-metadata/descriptions</a></dt><dd>List all available sounds devices on the user’s machine.  This includes both physical and virtual audio devices.</dd></dl></li>
+<li><dl><dt><a target="_blank" rel="noopener" href="https://github.com/sethmachine/universal-sound-board/blob/master/src/main/java/io/sethmachine/universalsoundboard/resources/AudioMixerMetadataResource.java#L41-L58">GET /audio-mixer-metadata/audio-formats</a></dt><dd>For a specific audio device (e.g. microphone), list all audio formats it supports.</dd></dl></li>
+<li><dl><dt><a target="_blank" rel="noopener" href="https://github.com/sethmachine/universal-sound-board/blob/master/src/main/java/io/sethmachine/universalsoundboard/resources/AudioMixersResource.java#L31-L34">POST /audio-mixers</a></dt><dd>Specify which sink or source audio device to use, along with the expected format of audio input.</dd></dl></li>
+<li><dl><dt><a target="_blank" rel="noopener" href="https://github.com/sethmachine/universal-sound-board/blob/master/src/main/java/io/sethmachine/universalsoundboard/resources/SinksResource.java#L26-L30">POST /sinks/start</a></dt><dd>Continuously listen to all input audio bytes from a sink (e.g. physical microphone).</dd></dl></li>
+<li><dl><dt><a target="_blank" rel="noopener" href="https://github.com/sethmachine/universal-sound-board/blob/master/src/main/java/io/sethmachine/universalsoundboard/resources/SourcesResource.java#L30-L46">POST /sources/play</a></dt><dd>Accept audio files as input to a source audio device (e.g. Blackhole, physical speakers, etc.).</dd></dl></li>
+<li><dl><dt><a target="_blank" rel="noopener" href="https://github.com/sethmachine/universal-sound-board/blob/master/src/main/java/io/sethmachine/universalsoundboard/resources/AudioMixerWiringResource.java#L35-L38">POST /audio-mixer-wiring</a></dt><dd>Wire together a sink to a source (e.g. physical microphone to Blackhole).  All input bytes read from the sink are automatically written to the source.</dd></dl></li>
+<li><dl><dt><a target="_blank" rel="noopener" href="https://github.com/sethmachine/universal-sound-board/blob/master/src/main/java/io/sethmachine/universalsoundboard/resources/SoundBoardResource.java#L28-L45">POST /sound-board/play</a></dt><dd>Simultaneously stream an audio file to 1 or more sources (e.g. play to Blackhole and physical speakers at the same time, so both ends of the voice chat hear the audio file).</dd></dl></li>
+<li><dl><dt><a target="_blank" rel="noopener" href="https://github.com/sethmachine/universal-sound-board/blob/master/src/main/java/io/sethmachine/universalsoundboard/resources/SinksResource.java#L32-L36">POST /sinks/stop</a></dt><dd>Turn off the sink (i.e. a mute function for a microphone).    </dd></dl></li>
+</ol>
+<h3 id="Technologies"><a href="#Technologies" class="headerlink" title="Technologies"></a>Technologies</h3><p>USBD runs as a <a target="_blank" rel="noopener" href="https://www.dropwizard.io/en/latest/">Dropwizard</a> RESTful webservice that accepts incoming HTTP requests to perform different soundboard commands as outlined in <a href="#api">API</a>.  A webservice approach provides two key benefits: </p>
+<ol>
+<li> soundboards inherently need to run forever as a background process, which is what a webservice also does</li>
+<li> HTTP requests are language agnostic, so this allows for building abstractions on top of USBD easily and are not restricted to Java.  E.g. one could build a Python soundboard that uses USBD under the hood.  </li>
+</ol>
+<p>USBD provides persistence through an embedded <a target="_blank" rel="noopener" href="https://db.apache.org/derby/">Apache Derby SQL database</a>.  This allows maintaining the different audio wirings of physical and virtual audio devices so users do not have to re-create these each time the server is started.  I use <a target="_blank" rel="noopener" href="https://www.liquibase.org/">Liquibase</a> to automatically create the database (if it doesn’t exist) and write its <a target="_blank" rel="noopener" href="https://github.com/sethmachine/universal-sound-board/blob/master/src/main/resources/migrations/migrations.sql">schema in SQL</a>.  To seamlessly map database rows to Java objects, I use <a target="_blank" rel="noopener" href="https://github.com/HubSpot/Rosetta">Rosetta</a>.  </p>
+<h3 id="Systems-Design"><a href="#Systems-Design" class="headerlink" title="Systems Design"></a>Systems Design</h3><p>The follow diagrams illustrate the two key flows of USBD and how the different technologies interact.</p>
+<ol>
+<li> Determine which audio devices are to act as sinks and sources, and then wire these together.  </li>
+<li> Capture audio from the sink (microphone) in the previous step and write it to the virtual audio device (source).  Do the same for any audio file input.  </li>
+</ol>
+<h4 id="Specify-audio-devices"><a href="#Specify-audio-devices" class="headerlink" title="Specify audio devices"></a>Specify audio devices</h4><p><img src="/2022/05/17/universal-sound-board/USBD-create-mixers.png" alt="USBD create mixers"></p>
+<p>In this flow, a user wishes to use their microphone as a sink and BlackHole virtual audio device as a source.  The user queries the USBD API to find the exact name and audio format of their microphone.  They do the same for the BlackHole virtual audio device as well.  These are written to the embedded database as generic audio mixers, so that they can be referenced again in future uses.  Finally, the user wires the sink to the source, which lets USBD know that all audio input from the microphone should be directed to the BlackHole virtual audio device.  </p>
+<h4 id="Play-audio"><a href="#Play-audio" class="headerlink" title="Play audio"></a>Play audio</h4><p><img src="/2022/05/17/universal-sound-board/USBD-play-audio.png" alt="USBD create mixers"></p>
+<p>This flow illustrates how the microphone and arbitrary audio files are written to a virtual audio device, ultimately becoming a single audio input for a voice chat application.  In the first part, the user references the ID of the sink set up in the previous flow, which is the microphone being used.  The user asks USBD to start the sink, which will turn the microphone on and cause all audio input bytes to be written to the BlackHole virtual audio device.  With BlackHole specified as the audio input on the voice chat application, listeners will hear the user’s microphone as normal.  Separately, the user then specifies to play an audio file to the BlackHole device, referencing the source ID set up in the previous flow.  This causes all audio bytes to be written to the BlackHole device, used as input for the voice chat application, and ultimately heard by listeners on the other end.  Throughout this flow, the database is queried to get the correct audio devices and formats.  </p>
+<h2 id="Next-steps"><a href="#Next-steps" class="headerlink" title="Next steps"></a>Next steps</h2><p>In this article I explained why I created UniversalSoundBoard (USBD), the different use cases of a soundboard, and how USBD works.  </p>
+<p>UniveralSoundBoard is a free, programmable, open source, app and OS agnostic soundboard program.  I created USBD for my own personal usage, as a building block for more complex soundboard applications, and to share my learnings with others looking to learn the same.  </p>
+<p>Next steps are:</p>
+<ul>
+<li>How can we trigger playing an arbitrary audio clip in a frictionless manner?    </li>
+<li>How can we gather a library of high quality audio memes in a semi-automatic fashion?</li>
+<li>How could we develop our own virtual audio devices without relying on 3rd parties?   </li>
+</ul>
+<p>I invite others to explore these next steps and what could be built on top of UniveralSoundBoard.  I’ve enjoyed using UniversalSoundBoard in my own Discord and Zoom sessions with friends and I continue to plan to do so.  </p>
+
+      </div>
+      
+        <div class="prev-or-next">
+          <div class="post-foot-next">
+            
+              <a href="/2021/02/11/host-valheim-with-docker/" target="_self">
+                <i class="iconfont icon-chevronleft"></i>
+                <span>Prev</span>
+              </a>
+            
+          </div>
+          <div class="post-attach">
+            <span class="post-pubtime">
+              <i class="iconfont icon-updatetime mr-10" title="Update time"></i>
+              2022-05-17 09:00:00
+            </span>
+            
+                  <span class="post-tags">
+                    <i class="iconfont icon-tags mr-10" title="Tags"></i>
+                    
+                    <span class="span--tag mr-8">
+                      <a href="/tags/Audio/" title="Audio">
+                        #Audio
+                      </a>
+                    </span>
+                    
+                    <span class="span--tag mr-8">
+                      <a href="/tags/Microphone/" title="Microphone">
+                        #Microphone
+                      </a>
+                    </span>
+                    
+                    <span class="span--tag mr-8">
+                      <a href="/tags/Soundboard/" title="Soundboard">
+                        #Soundboard
+                      </a>
+                    </span>
+                    
+                    <span class="span--tag mr-8">
+                      <a href="/tags/Java/" title="Java">
+                        #Java
+                      </a>
+                    </span>
+                    
+                    <span class="span--tag mr-8">
+                      <a href="/tags/Dropwizard/" title="Dropwizard">
+                        #Dropwizard
+                      </a>
+                    </span>
+                    
+                    <span class="span--tag mr-8">
+                      <a href="/tags/Derby/" title="Derby">
+                        #Derby
+                      </a>
+                    </span>
+                    
+                    <span class="span--tag mr-8">
+                      <a href="/tags/Discord/" title="Discord">
+                        #Discord
+                      </a>
+                    </span>
+                    
+                    <span class="span--tag mr-8">
+                      <a href="/tags/Zoom/" title="Zoom">
+                        #Zoom
+                      </a>
+                    </span>
+                    
+                    <span class="span--tag mr-8">
+                      <a href="/tags/Memes/" title="Memes">
+                        #Memes
+                      </a>
+                    </span>
+                    
+                    <span class="span--tag mr-8">
+                      <a href="/tags/Emojis/" title="Emojis">
+                        #Emojis
+                      </a>
+                    </span>
+                    
+                  </span>
+              
+          </div>
+          <div class="post-foot-prev">
+            
+              <a href="/2022/09/04/automatic-update-for-valheim-server/" target="_self">
+                <span>Next</span>
+                <i class="iconfont icon-chevronright"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+    </div>
+    
+  <div id="btn-catalog" class="btn-catalog">
+    <i class="iconfont icon-catalog"></i>
+  </div>
+  <div class="post-catalog hidden" id="catalog">
+    <div class="title">Contents</div>
+    <div class="catalog-content">
+      
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Introduction"><span class="toc-text">Introduction</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#What-is-a-soundboard"><span class="toc-text">What is a soundboard?</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Why-UniversalSoundBoard"><span class="toc-text">Why UniversalSoundBoard</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Programmable"><span class="toc-text">Programmable</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#100-open-source"><span class="toc-text">100% open source</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#100-free"><span class="toc-text">100% free</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#App-agnostic"><span class="toc-text">App agnostic</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#OS-agnostic"><span class="toc-text">OS agnostic</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#How-it-works"><span class="toc-text">How it works</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Sinks-and-Sources"><span class="toc-text">Sinks and Sources</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Virtual-audio-devices"><span class="toc-text">Virtual audio devices</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Windows"><span class="toc-text">Windows</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#macOS"><span class="toc-text">macOS</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#API"><span class="toc-text">API</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Technologies"><span class="toc-text">Technologies</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Systems-Design"><span class="toc-text">Systems Design</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Specify-audio-devices"><span class="toc-text">Specify audio devices</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Play-audio"><span class="toc-text">Play audio</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Next-steps"><span class="toc-text">Next steps</span></a></li></ol>
+      
+    </div>
+  </div>
+
+  
+<script src="/js/catalog.js"></script>
+
+
+
+
+    
+      <div class="comments-container">
+        
+
+
+  <div id="disqus_thread"></div>
+  <script>
+    /**
+    *  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+    *  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+    /*
+    var disqus_config = function () {
+    this.page.url = PAGE_URL;  // Replace PAGE_URL with your page's canonical URL variable
+    this.page.identifier = PAGE_IDENTIFIER; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+    };
+    */
+    (function() { // DON'T EDIT BELOW THIS LINE
+    var d = document, s = d.createElement('script');
+    s.src = 'https://sethmachine01.disqus.com/embed.js';
+    s.setAttribute('data-timestamp', +new Date());
+    (d.head || d.body).appendChild(s);
+    })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+
+
+
+
+
+      </div>
+    
+  </div>
+
+
+        
+<div class="footer">
+  <div class="social">
+    <ul>
+      
+        <li>
+          <a title="github" target="_blank" rel="noopener" href="https://github.com/sethmachine">
+            <i class="iconfont icon-github"></i>
+          </a>
+        </li>
+      
+        <li>
+          <a title="email" href="sdworman@brandeis.edu">
+            <i class="iconfont icon-envelope"></i>
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+  
+    
+    <div class="footer-more">
+      
+        <a target="_blank" rel="noopener" href="https://github.com/zchengsite/hexo-theme-oranges">Copyright © sethmachine 2022</a>
+        
+    </div>
+  
+    
+    <div class="footer-more">
+      
+        <a target="_blank" rel="noopener" href="https://github.com/zchengsite/hexo-theme-oranges">Theme by Oranges | Powered by Hexo</a>
+        
+    </div>
+  
+    
+    <div class="footer-more">
+      
+        <a target="_blank" rel="noopener" href="https://icons8.com/icons/set/espresso-cup">Espresso Cup icon by Icons8</a>
+        
+    </div>
+  
+  
+</div>
+
+      </div>
+
+      <div class="tools-bar">
+        <div class="back-to-top tools-bar-item hidden">
+  <a href="javascript: void(0)">
+    <i class="iconfont icon-chevronup"></i>
+  </a>
+</div>
+
+
+<script src="/js/backtotop.js"></script>
+
+
+
+        
+
+
+        
+  <div class="tools-bar-item theme-icon" id="switch-color-scheme">
+    <a href="javascript: void(0)">
+      <i id="theme-icon" class="iconfont icon-moon"></i>
+    </a>
+  </div>
+
+  
+<script src="/js/colorscheme.js"></script>
+
+
+
+
+
+        
+  
+    <div class="share-icon tools-bar-item">
+      <a href="javascript: void(0)" id="share-icon">
+        <i class="iconfont iconshare"></i>
+      </a>
+      <div class="share-content hidden">
+        
+          <a class="share-item" href="https://twitter.com/intent/tweet?text=' + Universal%20Sound%20Board + '&url=' + http%3A%2F%2Fexample.com%2F2022%2F05%2F17%2Funiversal-sound-board%2F + '" target="_blank" title="Twitter">
+            <i class="iconfont icon-twitter"></i>
+          </a>
+        
+        
+          <a class="share-item" href="https://www.facebook.com/sharer.php?u=http://example.com/2022/05/17/universal-sound-board/" target="_blank" title="Facebook">
+            <i class="iconfont icon-facebooksquare"></i>
+          </a>
+        
+      </div>
+    </div>
+  
+  
+<script src="/js/shares.js"></script>
+
+
+
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,5 +1,6 @@
 ---
 title: Automatic Update for Valheim Server
+date: 2021-05-21 09:00:00
 tags: 
 - Docker
 - Valheim

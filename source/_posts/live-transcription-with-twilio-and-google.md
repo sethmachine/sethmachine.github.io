@@ -28,6 +28,9 @@ Before getting started, you'll need the following accounts or tools installed:
 * [ngrok](https://ngrok.com/docs/getting-started/)
 * [PieSocket WebSocket Tester](https://chrome.google.com/webstore/detail/piesocket-websocket-teste/oilioclnckkoijghdniegedkbocfpnip)
 
+If you would like to dive straight into the code, the demo source code is available in a public GitHub repository.  You may still need to reference this guide for setting up the demo.  
+* GitHub: https://github.com/sethmachine/twilio-live-transcription-demo-public
+
 ## WebSockets Approach
 
 Live transcription's real time nature is challenging and requires using real time communication protocols that vanilla HTTP cannot accomplish easily.  End users or applications consuming the live transcription output will expect results nearly simultaneously as a person speaks.  Enter [WebSockets](https://en.wikipedia.org/wiki/WebSocket), which allows two way communication between a server and client in real time with arbitrary data.  Using WebSockets will allow for meeting the demanding latency requirements for a live speech to text application.  Thankfully, Twilio already uses the same WebSockets technology to provide live streams of audio bytes through [Media Streams](https://www.twilio.com/docs/voice/api/media-streams).  The Java web service we write will capture these audio bytes and send them to Google Cloud Speech To Text to get written natural language output.   
@@ -312,6 +315,8 @@ Note if instead you hear "An application error has occurred", this means somethi
 ## Model Twilio Stream messages
 
 In the previous sections we were able to successfully open a websocket audio stream from an incoming call.  However, the current representation of the messages are plain Java `String` objects.  We will need to deserialize these into actual typed objects in order to reference various fields such as the `"payload"` and to understand what overall is happening in the stream.  Thankfully Twilio has clear documentation on the schema of each type of Media Stream message: [Twilio Media Stream Messages](https://www.twilio.com/docs/voice/twiml/stream#message-connected).  
+
+For a bird's eye view see all the model files in the demo repo: [Twilio Live Transcription Demo Media Streams Models](https://github.com/sethmachine/twilio-live-transcription-demo-public/tree/main/src/main/java/io/sethmachine/twiliolivetranscriptiondemo/core/model/twilio/stream)
 
 1.  Create a new `core.model.twilio.stream` package under the root package.  E.g. the full package path on my implementation would be: `package io.sethmachine.twiliolivetranscriptiondemo.core.model.twilio.stream`.  
 2. Create two additional subpackages, `messages` for the modeling the stream messages, and `mediaformat` for modeling the audio format of each message.

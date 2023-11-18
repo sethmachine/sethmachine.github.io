@@ -1,6 +1,6 @@
 ---
 title: About
-date: 2021-01-01
+date: 2023-11-17
 ---
 
 ## About
@@ -8,8 +8,6 @@ date: 2021-01-01
 Hi, I'm Seth and welcome!  I wrote this blog as a way to (1) share, document, and compress knowledge about my various projects, and (2) communicate with the greater tech community (recruiters, engineers, data scientists, etc.).  
 
 My interests are in applied machine learning, natural language processing, computational linguistics, and software engineering.    
-
-Python is my preferred language; though I've also been using Java at my recent employers (HubSpot, Amazon).  I firmly believe in [Occam's razor](https://en.wikipedia.org/wiki/Occam%27s_razor) when it comes to problem solving in both machine learning and software engineering.  
 
 Things I like outside of tech include:
 
@@ -19,10 +17,6 @@ Things I like outside of tech include:
 * Hiking, rock climbing (indoor and outdoor)
 * Linguistics/foreign languages; I can read written French and Spanish
 * Starcraft/Warcraft modding; someone once wrote a whole strategy guide about a Starcraft game I made!: [War of the Lost Kingdoms Strategy guide](https://www.campaigncreations.org/forum/viewtopic.php?t=2052#p32008)
-
-## Papers
-
-[SemEval 2015 Task 8](https://www.researchgate.net/publication/301446274_SemEval-2015_Task_8_SpaceEval): joint work with Brandeis; I trained a conditional random field to identify spatial entities notably using features from a rich semantic parser.  
 
 ## Personal Projects
 

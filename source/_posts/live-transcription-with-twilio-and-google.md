@@ -14,11 +14,11 @@ tags:
 - Websockets
 ---
 
-![Placeholder for live speech to text image](placeholder.jpg)
+<img src="machine-talking-on-phone.jpeg" alt="AI talking over the phone" width="65%" />
 
 ## Introduction
 
-This article provides a detailed guide on how to create your own Java live transcription service with Twilio.  There already exist guides for [Python](https://www.twilio.com/blog/transcribe-phone-calls-text-real-time-twilio-vosk) and [Node.js](https://www.twilio.com/blog/live-transcribing-phone-calls-using-twilio-media-streams-and-google-speech-text) but no such equivalent guide in Java exists.  Live speech to text (or live transcription) is the capability to turn spoken human language into text on demand as each person talks.  This capability powers many well known products today like Amazon's Alexa or Apple's Siri.  Live transcription contrasts with batch or offline transcription, which operates on already made recordings.  The online (live) nature of this makes it a harder problem and requires a different software engineering approach than the usual [CRUD](https://en.wikipedia.org/wiki/Create,_read,_update_and_delete) approach applicable to simpler systems.
+This article provides a detailed guide on how to create your own Java live transcription service with Twilio.  There already exist guides for [Python](https://www.twilio.com/blog/transcribe-phone-calls-text-real-time-twilio-vosk) and [Node.js](https://www.twilio.com/blog/live-transcribing-phone-calls-using-twilio-media-streams-and-google-speech-text) but no such equivalent guide in Java exists.  Live speech to text (or live transcription) is the capability to turn spoken human language into text on demand as each person talks.  This capability powers many well known products today like Amazon's Alexa or Apple's Siri.  Live transcription contrasts with batch or offline transcription, which operates on already made recordings.  The online (live) nature of this makes it a harder problem and requires a different software engineering approach than the usual CRUD approach applicable to simpler systems.
 
 Before getting started, you'll need the following accounts or tools installed:
 * [A Twilio account](https://www.twilio.com/try-twilio)
@@ -30,7 +30,7 @@ Before getting started, you'll need the following accounts or tools installed:
 
 ## WebSockets Approach
 
-Live transcription's real time nature is challenging and requires using real time communication protocols that vanilla HTTP cannot accomplish easily.  End users or applications consuming the live transcription output will expect results nearly simultaneously as a person speaks, otherwise it is not really live transcription at all.  Enter [WebSockets](https://en.wikipedia.org/wiki/WebSocket), which allows two way communication between a server and client in real time with arbitrary data.  Using WebSockets will allow for meeting the demanding latency requirements for a live speech to text application.  Thankfully, Twilio already uses the same WebSockets technology to provide live streams of audio bytes through [Media Streams](https://www.twilio.com/docs/voice/api/media-streams).  The Java web service we write will capture these audio bytes and send them to Google Cloud Speech To Text to get written natural language output.   
+Live transcription's real time nature is challenging and requires using real time communication protocols that vanilla HTTP cannot accomplish easily.  End users or applications consuming the live transcription output will expect results nearly simultaneously as a person speaks.  Enter [WebSockets](https://en.wikipedia.org/wiki/WebSocket), which allows two way communication between a server and client in real time with arbitrary data.  Using WebSockets will allow for meeting the demanding latency requirements for a live speech to text application.  Thankfully, Twilio already uses the same WebSockets technology to provide live streams of audio bytes through [Media Streams](https://www.twilio.com/docs/voice/api/media-streams).  The Java web service we write will capture these audio bytes and send them to Google Cloud Speech To Text to get written natural language output.   
 
 At a high level, the approach consists of the following steps:
 1. When a phone call comes in, open a WebSocket connection to Twilio Media Streams
@@ -38,15 +38,15 @@ At a high level, the approach consists of the following steps:
 3. Create a new WebSocket connection and begin publishing Google Cloud transcription results
 4. End user or application listens to the previous WebSocket connection and displays transcription results
 
-Each phone call will create 2 separate WebSocket connections: one connection for receiving the audio bytes from Twilio Media Streams, and a second WebSocket connection for publishing the Google Cloud transcription results.  This guide will omit [security/identity/authentication issues](https://en.wikipedia.org/wiki/WebSocket#Security_considerations) and focus primarily on functional live transcription: from phone call speech to natural language text in real time.  
+Each phone call will create 2 separate WebSocket connections: one connection for receiving the audio bytes from Twilio Media Streams, and a second WebSocket connection for publishing the Google Cloud transcription results.  This guide will omit [WebSockets security issues](https://en.wikipedia.org/wiki/WebSocket#Security_considerations) and focus entirely on functional live transcription: from phone call speech to natural language text in real time.  
 
-![Placeholder for systems diagram](placeholder.jpg)
+![Live Transcription Systems Diagram](live-transcription-systems-diagram.png)
 
 ## Setting up Java web server
 
-In this section we will set up foundations for the Java web server that will handle incoming phone calls, the creation of the WebSocket connections, and streaming live transcription results.  We will use the [Dropwizard framework](https://www.dropwizard.io/en/latest/getting-started.html) for the Java web server, as it has extensions that allow it to act as a WebSocket server.  It is possible to substitute Dropwizard with a different framework as long as it supports WebSockets. 
+In this section we will set up foundations for the Java web server that will handle incoming phone calls, create WebSocket connections, and stream live transcriptions.  We will use the [Dropwizard framework](https://www.dropwizard.io/en/latest/getting-started.html) for the Java web server, as it has extensions supporting WebSockets.  It is possible to substitute Dropwizard with a different framework as long as it supports WebSockets. 
 
-To simplify the initial setup and boilerplate, I have created a repo, [dropwizard-guice-template](https://github.com/sethmachine/dropwizard-guice-template) that already has much of these completed in order to keep the focus on the business logic for live transcription.  The steps below assume using IntelliJ IDEA Community Edition.  
+To simplify the initial setup and boilerplate, I have created the [dropwizard-guice-template repo](https://github.com/sethmachine/dropwizard-guice-template) to keep the focus on the business logic for live transcription.  The steps below are for IntelliJ IDEA Community Edition.  
 
 1. Clone the template repo: `git clone https://github.com/sethmachine/dropwizard-guice-template`
 2. Open the project `dropwizard-guice-template` in IntelliJ.  It should appear as shown in the screenshot below:
@@ -73,12 +73,12 @@ To simplify the initial setup and boilerplate, I have created a repo, [dropwizar
     curl -X GET localhost:8080/sample/http
     Hello world!
     ```
-6.  (Optionally) Rename any of the files to have the `TwilioLiveTranscriptionDemo` prefix.  For the remainder of the guide I will be referencing files and packages like `TwilioLiveTranscriptionDemoApplication.java` instead of `DropwizardGuiceTemplateApplication.java`
+6.  (Optionally) Rename any of the files to have the `TwilioLiveTranscriptionDemo` prefix.  For the remainder of the guide I will be referencing files and packages using so prefix: so `TwilioLiveTranscriptionDemoApplication.java` instead of `DropwizardGuiceTemplateApplication.java`
 
 
 ## Handle Inbound Calls
 
-With the basic server now running, we will need to configure it to handle incoming phone calls from Twilio and respond with instructions to stream the audio bytes to a websocket server.  Every purchased phone number in Twilio can be assigned an external webhook endpoint which is triggered when certain events happen, such as an incoming phone call.  We will use this webhook to instruct Twilio how to respond to incoming calls, and ultimately to get for live transcription output.
+With the basic server now running, we will need to configure it to handle incoming phone calls from Twilio and respond with instructions to stream the audio bytes to a websocket server.  Every purchased phone number in Twilio can be assigned an external webhook endpoint which is triggered when certain events happen, such as an incoming phone call.  We will use this webhook to instruct Twilio how to respond to incoming calls, and ultimately receive live transcription results.
 
 First, create a new HTTP resource to handle incoming calls from Twilio called `TwilioInboundCallWebhookResource` as shown below:
 
@@ -132,7 +132,7 @@ This HTTP resource does the following:
 * Returns [TwiML](https://www.twilio.com/docs/voice/twiml) to provide instructions back to Twilio on what to do with the incoming call.  The TwiML tells Twilio to do the following:
   * Stream the audio to a specified websocket URI (constructed in `TwilioInboundCallWebhookResource#buildWebsocketUri`)
   * Play a text to speech message informing the caller that 60 seconds of the call will be recorded and transcribed
-  * End the call after 60s have passed.  
+  * End the call after 60 seconds have passed.  
 * Constructs a URI to `"twilio/websocket/audio-stream"` websocket endpoint.  We will create this in the next section.  
 
 We can verify this endpoint works as expected by running the server locally and hitting it with `curl -X GET localhost:8080/twilio/webhooks/inbound-call`:
@@ -248,11 +248,11 @@ Later on we will add proper Java objects to model all the messages coming in fro
 
 ## Expose server with ngrok
 
-[ngrok](https://ngrok.com/docs/getting-started/) allows for exposing a local service to the public internet.  This step is necessary because Twilio needs to hit publicly exposed webhooks when an incoming phone call comes in to get further instructions.  While this may seem insecure, the URLs that ngrok generates for forwarding are hard to guess and thus provide security through obfuscation.  In addition, each time ngrok is run, a different public URL will be generated, making it more secure.  
+[ngrok](https://ngrok.com/docs/getting-started/) allows for exposing a local service to the public internet.  This step is necessary because Twilio webhooks require publicly exposed endpoints.  While this may seem insecure, the URLs that ngrok generates for forwarding are hard to guess and thus provide security through obfuscation.  In addition, each time ngrok is run again, a different public URL will be generated.    
 
 After ngrok is installed, run ngrok and verify it is correctly exposing the server:
 
-1.  First, run the Java server (via running `TwilioLiveTranscriptionDemoApplication` in IntelliJ)
+1.  Run the Java server (via running `TwilioLiveTranscriptionDemoApplication` in IntelliJ)
 2. On a separate command line, run `ngrok http 8080`.  This will expose port 8080 publicly.  
 3. From the ngrok output, find the public forwarding URL (see below image):
    ![Ngrok running with forwarding URL](ngrok-running-first-time.png)
@@ -287,9 +287,9 @@ In this section we will verify the server is working with a real phone call.  Fi
     ![Buy Twilio Phone Number part 5](buy-twilio-phone-number-part-5.png)
 8.  Keep a copy of the purchased phone number, we will be calling it regularly to test the live transcription functionality.  
 
-Congratulations!  You've purchased your first phone number and configured it to send webhooks to a Java server running locally.  One gotcha: each time ngrok is stopped and started again, the phone number webhook will need to be reconfigured with the most recent ngrok forwarding URL.  
+Congratulations!  You've purchased your first phone number and configured it to send webhooks to a Java server running locally. It is important to note: **each time ngrok is stopped and started again, the phone number webhook will need to be reconfigured with the most recent ngrok forwarding URL.**  
 
-Now to test the server.  For this next part you'll need a way to dial the purchased phone number.  I use my personal cell phone but any method of dialing it should work.  While dialing be sure to have the Java server console open to verify the incoming web traffic.  
+Now to test the server.  For this next part you'll need a way to dial the purchased phone number.  I use my personal cell phone but any method of dialing it should work.  Keep the Java server console open to observe the incoming web traffic from Twilio.  
 
 1.  Dial the purchased phone number!  
 2. You should hear a message saying "This calling is being recorded.  Streaming 60 seconds of audio for live transcription."
@@ -301,21 +301,21 @@ Now to test the server.  For this next part you'll need a way to dial the purcha
     * the first media stream message being sent over the websocket by Twilio
 4.  Afterwards, you should see a continuous stream of messages being received by the websocket.  These messages contain a payload of the captured audio bytes of the phone call.  We will soon send these bytes to Google Cloud Speech To Text to get natural language text back.    
     ![Console output for Twilio incoming call](console-output-twilio-connection-part-2.png)
-    * The `"payload"` key of each message looks like gibberish but it's the base 64 representation of the audio bytes.
-    * We will soon use speech to text to transcribe each payload into readable human language text.
+    * The `"payload"` key of each message is the base 64 representation of the audio bytes.
+    * Speech to text to will transcribe each payload into written text.  
 5. Hang up the call or wait 60 seconds for the call to end.  
 
-Note if instead you hear "An application error has occurred", this means something went wrong with the Twilio webhook.  Double check the server is running, ngrok is forwarding port 8080, and the ngrok forwarding URL on the purchased phone number webhook matches the current ngrok forwarding URL.  For more troubleshooting see: [Troubleshooting Voice Calls](https://www.twilio.com/docs/voice/troubleshooting#an-application-error-has-occurred-on-your-call).  
+Note if instead you hear "An application error has occurred", this means something went wrong with the Twilio webhook.  Double check the server is running, ngrok is forwarding port 8080, and the ngrok forwarding URL on the purchased phone number webhook matches the current ngrok forwarding URL.  For more debugging see: [Troubleshooting Voice Calls](https://www.twilio.com/docs/voice/troubleshooting#an-application-error-has-occurred-on-your-call).  
 
 
 
 ## Model Twilio Stream messages
 
-In the previous sections we were able to successfully open a websocket audio stream from an incoming call.  However, the current representation of the messages are plain Java `String` objects.  We will need to deserialize these into actual typed objects in order to reference various fields such as the `"payload"`, as well as understand what overall is happening in the stream.  Thankfully Twilio has clear documentation on the schema of each type of Media Stream message, which we'll use to build our Java models: [Twilio Media Stream Messages](https://www.twilio.com/docs/voice/twiml/stream#message-connected).  
+In the previous sections we were able to successfully open a websocket audio stream from an incoming call.  However, the current representation of the messages are plain Java `String` objects.  We will need to deserialize these into actual typed objects in order to reference various fields such as the `"payload"` and to understand what overall is happening in the stream.  Thankfully Twilio has clear documentation on the schema of each type of Media Stream message: [Twilio Media Stream Messages](https://www.twilio.com/docs/voice/twiml/stream#message-connected).  
 
 1.  Create a new `core.model.twilio.stream` package under the root package.  E.g. the full package path on my implementation would be: `package io.sethmachine.twiliolivetranscriptiondemo.core.model.twilio.stream`.  
 2. Create two additional subpackages, `messages` for the modeling the stream messages, and `mediaformat` for modeling the audio format of each message.
-3.  Create another subpackage under `core.model.twilio.stream.messages` called `payloads`.  This will model information specific to the audio payload.  
+3.  Create another subpackage under `core.model.twilio.stream.messages` called `payloads`.  This will model information specific to the nested payloads on each message.  
 4. Create an immutable class `MediaFormatIF` in the `mediaformat` package.  This class will provide information on the audio format of each media message, so we can tell Google Speech To Text how to interpret the audio bytes.
     ```java MediaFormatIF.java
     package io.sethmachine.twiliolivetranscriptiondemo.core.model.twilio.stream.mediaformat;
@@ -326,9 +326,9 @@ In the previous sections we were able to successfully open a websocket audio str
     @Immutable
     @HubSpotStyle
     public interface MediaFormatIF {
-    String getEncoding();
-    String getSampleRate();
-    String getChannels();
+      String getEncoding();
+      String getSampleRate();
+      String getChannels();
     }
     ```
 5.  Create immutable classes to model the nested payloads of incoming messages: `MediaMessagePayloadIF.java`, `StartMessagePayloadIF`, and `StopMessagePayloadIF`.  Create these under the `core.model.twilio.stream.messages.payloads` package:
@@ -344,33 +344,33 @@ In the previous sections we were able to successfully open a websocket audio str
     @Immutable
     @HubSpotStyle
     public interface StartMessagePayloadIF {
-    String getStreamSid();
-    String getAccountSid();
-    String getCallSid();
-    List<String> getTracks();
-    Map<String, String> getCustomParameters();
+      String getStreamSid();
+      String getAccountSid();
+      String getCallSid();
+      List<String> getTracks();
+      Map<String, String> getCustomParameters();
     
-    MediaFormat getMediaFormat();
+      MediaFormat getMediaFormat();
     }
     ```
     ```java MediaMessagePayloadIF.java
     package io.sethmachine.twiliolivetranscriptiondemo.core.model.twilio.stream.messages.payloads;
-
+    
     import com.hubspot.immutables.style.HubSpotStyle;
     import org.immutables.value.Value.Immutable;
     
     @Immutable
     @HubSpotStyle
     public interface MediaMessagePayloadIF {
-    String getTrack();
-    String getChunk();
-    String getTimestamp();
-    String getPayload();
+      String getTrack();
+      String getChunk();
+      String getTimestamp();
+      String getPayload();
     }
     ```
     ```java StopMesssagePayloadIF.java
     package io.sethmachine.twiliolivetranscriptiondemo.core.model.twilio.stream.messages.payloads;
-
+    
     import org.immutables.value.Value.Immutable;
     
     import com.hubspot.immutables.style.HubSpotStyle;
@@ -378,14 +378,14 @@ In the previous sections we were able to successfully open a websocket audio str
     @Immutable
     @HubSpotStyle
     public interface StopMessagePayloadIF {
-    String getAccountSid();
-    String getCallSid();
+      String getAccountSid();
+      String getCallSid();
     }
     ```
 6.  Create `MessageEventType.java` enum class to model the four kinds of messages Twilio can send through the audio stream.  Knowing the type of the message will allow for deserializing the message with the right message model.  
     ```java MessageEventType.java
     package io.sethmachine.twiliolivetranscriptiondemo.core.model.twilio.stream.messages;
-
+    
     import com.fasterxml.jackson.annotation.JsonCreator;
     import com.fasterxml.jackson.annotation.JsonValue;
     import java.util.Arrays;
@@ -395,52 +395,52 @@ In the previous sections we were able to successfully open a websocket audio str
     import java.util.stream.Collectors;
     
     public enum MessageEventType {
-    CONNECTED("connected"),
-    START("start"),
-    MEDIA("media"),
-    STOP("stop");
+      CONNECTED("connected"),
+      START("start"),
+      MEDIA("media"),
+      STOP("stop");
     
-    private static final Map<String, MessageEventType> EVENT_TO_ENUM_MAP = Arrays
-    .stream(MessageEventType.values())
-    .collect(
-    Collectors.toUnmodifiableMap(MessageEventType::getEventName, Function.identity())
-    );
-    private final String eventName;
+      private static final Map<String, MessageEventType> EVENT_TO_ENUM_MAP = Arrays
+        .stream(MessageEventType.values())
+        .collect(
+          Collectors.toUnmodifiableMap(MessageEventType::getEventName, Function.identity())
+        );
+      private final String eventName;
     
-    MessageEventType(String eventName) {
-    this.eventName = eventName;
-    }
+      MessageEventType(String eventName) {
+        this.eventName = eventName;
+      }
     
-    @JsonValue
-    public String getEventName() {
-    return eventName;
-    }
+      @JsonValue
+      public String getEventName() {
+        return eventName;
+      }
     
-    @JsonCreator
-    public static MessageEventType fromEventName(String eventName) {
-    MessageEventType maybeEntry = EVENT_TO_ENUM_MAP.get(eventName);
-    if (Objects.isNull(maybeEntry)) {
-    throw new IllegalArgumentException(
-    String.format("Unknown value for MessageEventType enum: %s", eventName)
-    );
-    }
-    return maybeEntry;
-    }
+      @JsonCreator
+      public static MessageEventType fromEventName(String eventName) {
+        MessageEventType maybeEntry = EVENT_TO_ENUM_MAP.get(eventName);
+        if (Objects.isNull(maybeEntry)) {
+          throw new IllegalArgumentException(
+            String.format("Unknown value for MessageEventType enum: %s", eventName)
+          );
+        }
+        return maybeEntry;
+      }
     }
     ```
 7.  Create a `StreamMessageCore.java` interface class.  This interface includes fields present in all types of media messages, namely the sequence number and the stream SID (a unique Twilio identifier for the stream).
     ```java StreamMessageCore.java
     package io.sethmachine.twiliolivetranscriptiondemo.core.model.twilio.stream.messages;
-
+    
     public interface StreamMessageCore extends StreamMessage {
-    String getSequenceNumber();
-    String getStreamSid();
+      String getSequenceNumber();
+      String getStreamSid();
     }
     ```
 8.  Create models for each of the four media message types: connected, start, message, and stop:
     ```java ConnectedMessageIF
     package io.sethmachine.twiliolivetranscriptiondemo.core.model.twilio.stream.messages;
-
+    
     import com.hubspot.immutables.style.HubSpotStyle;
     import org.immutables.value.Value.Immutable;
     
@@ -448,30 +448,29 @@ In the previous sections we were able to successfully open a websocket audio str
     @Immutable
     // See: https://www.twilio.com/docs/voice/twiml/stream#message-connected
     public interface ConnectedMessageIF extends StreamMessage {
-    String getProtocol();
-    String getVersion();
+      String getProtocol();
+      String getVersion();
     }
     ```
     ```java StartMessageIF
     package io.sethmachine.twiliolivetranscriptiondemo.core.model.twilio.stream.messages;
-
+    
     import com.fasterxml.jackson.annotation.JsonAlias;
     import com.hubspot.immutables.style.HubSpotStyle;
     import io.sethmachine.twiliolivetranscriptiondemo.core.model.twilio.stream.messages.payloads.StartMessagePayload;
     import org.immutables.value.Value.Immutable;
-
+    
     @HubSpotStyle
     @Immutable
     // See: https://www.twilio.com/docs/voice/twiml/stream#message-start
     public interface StartMessageIF extends StreamMessageCore {
-    @JsonAlias("start")
-    StartMessagePayload getStartMessagePayLoad();
+      @JsonAlias("start")
+      StartMessagePayload getStartMessagePayLoad();
     }
-
     ```
     ```java MediaMessageIF
     package io.sethmachine.twiliolivetranscriptiondemo.core.model.twilio.stream.messages;
-
+    
     import com.fasterxml.jackson.annotation.JsonAlias;
     import com.hubspot.immutables.style.HubSpotStyle;
     import io.sethmachine.twiliolivetranscriptiondemo.core.model.twilio.stream.messages.payloads.MediaMessagePayload;
@@ -480,50 +479,52 @@ In the previous sections we were able to successfully open a websocket audio str
     @HubSpotStyle
     @Immutable
     public interface MediaMessageIF extends StreamMessageCore {
-    @JsonAlias("media")
-    MediaMessagePayload getMediaMessagePayload();
+      @JsonAlias("media")
+      MediaMessagePayload getMediaMessagePayload();
     }
-
     ```
     ```java StopMessageIF
     package io.sethmachine.twiliolivetranscriptiondemo.core.model.twilio.stream.messages;
-
+    
+    import com.fasterxml.jackson.annotation.JsonAlias;
+    import com.hubspot.immutables.style.HubSpotStyle;
     import org.immutables.value.Value.Immutable;
     
-    import com.hubspot.immutables.style.HubSpotStyle;
+    import io.sethmachine.twiliolivetranscriptiondemo.core.model.twilio.stream.messages.payloads.StopMessagePayload;
     
     @HubSpotStyle
     @Immutable
     // See: https://www.twilio.com/docs/voice/twiml/stream#example-stop-message
     public interface StopMessageIF extends StreamMessageCore {
-    String getCallSid();
+      @JsonAlias("stop")
+      StopMessagePayload getStopMessagePayload();
     }
     ```
 9.  Finally, to allow Java to know how to serialize each stream message into the appropriate message type, introduce a `StreamMessage.java` class that provides JSON subtyping information.
     ```java StreamMessage.java
     package io.sethmachine.twiliolivetranscriptiondemo.core.model.twilio.stream.messages;
-
+    
     import com.fasterxml.jackson.annotation.JsonAlias;
     import com.fasterxml.jackson.annotation.JsonSubTypes;
     import com.fasterxml.jackson.annotation.JsonTypeInfo;
     
     @JsonTypeInfo(
-    use = JsonTypeInfo.Id.NAME,
-    include = JsonTypeInfo.As.EXISTING_PROPERTY,
-    property = "event",
-    visible = true
+      use = JsonTypeInfo.Id.NAME,
+      include = JsonTypeInfo.As.EXISTING_PROPERTY,
+      property = "event",
+      visible = true
     )
     @JsonSubTypes(
-    {
-    @JsonSubTypes.Type(value = ConnectedMessage.class, name = "connected"),
-    @JsonSubTypes.Type(value = StartMessage.class, name = "start"),
-    @JsonSubTypes.Type(value = MediaMessage.class, name = "media"),
-    @JsonSubTypes.Type(value = StopMessage.class, name = "stop"),
-    }
+      {
+        @JsonSubTypes.Type(value = ConnectedMessage.class, name = "connected"),
+        @JsonSubTypes.Type(value = StartMessage.class, name = "start"),
+        @JsonSubTypes.Type(value = MediaMessage.class, name = "media"),
+        @JsonSubTypes.Type(value = StopMessage.class, name = "stop"),
+      }
     )
     public interface StreamMessage {
-    @JsonAlias("event")
-    MessageEventType getMessageEventType();
+      @JsonAlias("event")
+      MessageEventType getMessageEventType();
     }
     ```
     This uses the media message event type to determine how to deserialize each incoming websocket message.  
@@ -534,125 +535,97 @@ Now we need to make the websocket resource class, `TwilioInboundCallWebhookResou
 2. Create the `StreamMessageDecoder.java` decoder class in the new subpackage.  
     ```java StreamMessageDecoder.java
     package io.sethmachine.twiliolivetranscriptiondemo.service.twilio.stream;
-
-    import java.util.Optional;
     
+    import com.fasterxml.jackson.databind.ObjectMapper;
+    import io.sethmachine.twiliolivetranscriptiondemo.core.model.twilio.stream.messages.StreamMessage;
+    import java.util.Optional;
     import javax.websocket.DecodeException;
     import javax.websocket.Decoder;
     import javax.websocket.EndpointConfig;
-    
     import org.slf4j.Logger;
     import org.slf4j.LoggerFactory;
     
-    import com.fasterxml.jackson.databind.ObjectMapper;
-    
-    import io.sethmachine.twiliolivetranscriptiondemo.core.model.twilio.stream.messages.StreamMessage;
-    
     public class StreamMessageDecoder implements Decoder.Text<StreamMessage> {
     
-    private static final Logger LOG = LoggerFactory.getLogger(StreamMessageDecoder.class);
+      private static final Logger LOG = LoggerFactory.getLogger(StreamMessageDecoder.class);
     
-    private ObjectMapper objectMapper;
+      private ObjectMapper objectMapper;
     
-    @Override
-    public StreamMessage decode(String s) throws DecodeException {
-    return decodeString(s)
-    .orElseThrow(() -> {
-    String msg = String.format("Failed to parse string into StreamMessage: %s", s);
-    return new DecodeException(s, msg);
-    });
-    }
+      @Override
+      public StreamMessage decode(String s) throws DecodeException {
+        return decodeString(s)
+          .orElseThrow(() -> {
+            String msg = String.format("Failed to parse string into StreamMessage: %s", s);
+            return new DecodeException(s, msg);
+          });
+      }
     
-    @Override
-    public boolean willDecode(String s) {
-    return decodeString(s).isPresent();
-    }
+      @Override
+      public boolean willDecode(String s) {
+        return decodeString(s).isPresent();
+      }
     
-    @Override
-    public void init(EndpointConfig config) {
-    this.objectMapper = new ObjectMapper();
-    }
+      @Override
+      public void init(EndpointConfig config) {
+        this.objectMapper = new ObjectMapper();
+      }
     
-    @Override
-    public void destroy() {}
+      @Override
+      public void destroy() {}
     
-    private Optional<StreamMessage> decodeString(String s) {
-    try {
-    return Optional.of(objectMapper.readValue(s, StreamMessage.class));
-    } catch (Exception e) {
-    LOG.error("Failed to decode string into StreamMessage: {}", s);
-    return Optional.empty();
-    }
-    }
+      private Optional<StreamMessage> decodeString(String s) {
+        try {
+          return Optional.of(objectMapper.readValue(s, StreamMessage.class));
+        } catch (Exception e) {
+          LOG.error("Failed to decode string into StreamMessage: {}", s);
+          return Optional.empty();
+        }
+      }
     }
     ```
 3.  Update the `TwilioInboundCallWebhookResource.java` class to use the new stream decoder, as well as use `StreamMessage streamMessage` instead of `String streamMessage`.
     ```java TwilioInboundCallWebhookResource.java
     package io.sethmachine.twiliolivetranscriptiondemo.resources;
-
-    import com.codahale.metrics.annotation.ExceptionMetered;
-    import com.codahale.metrics.annotation.Metered;
-    import com.codahale.metrics.annotation.Timed;
-    import com.fasterxml.jackson.databind.ObjectMapper;
     
-    import io.sethmachine.twiliolivetranscriptiondemo.core.model.twilio.stream.messages.StreamMessage;
-    import io.sethmachine.twiliolivetranscriptiondemo.guice.GuiceWebsocketConfigurator;
-    import io.sethmachine.twiliolivetranscriptiondemo.service.twilio.stream.StreamMessageDecoder;
-    
-    import java.io.IOException;
     import javax.inject.Inject;
-    import javax.websocket.CloseReason;
-    import javax.websocket.OnClose;
-    import javax.websocket.OnMessage;
-    import javax.websocket.OnOpen;
-    import javax.websocket.Session;
-    import javax.websocket.server.ServerEndpoint;
-    import org.slf4j.Logger;
-    import org.slf4j.LoggerFactory;
+    import javax.ws.rs.Consumes;
+    import javax.ws.rs.GET;
+    import javax.ws.rs.Path;
+    import javax.ws.rs.Produces;
+    import javax.ws.rs.core.Context;
+    import javax.ws.rs.core.HttpHeaders;
+    import javax.ws.rs.core.MediaType;
     
-    @Metered
-    @Timed
-    @ExceptionMetered
-    @ServerEndpoint(
-    value = "/twilio/websocket/audio-stream",
-    configurator = GuiceWebsocketConfigurator.class,
-    decoders = { StreamMessageDecoder.class }
-    )
-    public class TwilioAudioStreamWebsocketResource {
+    @Path("/twilio/webhooks/inbound-call")
+    @Produces(MediaType.TEXT_XML)
+    @Consumes(MediaType.TEXT_XML)
+    public class TwilioInboundCallWebhookResource {
     
-    private static final Logger LOG = LoggerFactory.getLogger(
-    TwilioAudioStreamWebsocketResource.class
-    );
+      private static final String WEBSOCKET_CONNECT_PATH = "twilio/websocket/audio-stream";
     
-    private ObjectMapper objectMapper;
+      @Inject
+      public TwilioInboundCallWebhookResource() {}
     
-    private Session session;
+      @GET
+      public String getTwiml(@Context HttpHeaders httpHeaders) {
+        String websocketUri = buildWebsocketUri(httpHeaders);
     
-    @Inject
-    public TwilioAudioStreamWebsocketResource(ObjectMapper objectMapper) {
-    this.objectMapper = objectMapper;
-    }
+        return String.format(
+          "    <Response>\n" +
+          "      <Start>\n" +
+          "        <Stream url=\"%s\"/>\n" +
+          "      </Start>\n" +
+          "      <Say>This calling is being recorded.  Streaming 60 seconds of audio for live transcription.</Say>\n" +
+          "      <Pause length=\"60\" />\n" +
+          "    </Response>",
+          websocketUri
+        );
+      }
     
-    @OnOpen
-    public void myOnOpen(final Session session) throws IOException {
-    LOG.info(
-    "[sessionId: {}] Websocket session connection opened: {}",
-    session.getId(),
-    session
-    );
-    session.getAsyncRemote().sendText("Ready to receive live transcription results");
-    this.session = session;
-    }
-    
-    @OnMessage
-    public void myOnMsg(final Session session, StreamMessage streamMessage) {
-    LOG.info("[sessionId: {}] Got message: {}", session.getId(), message);
-    }
-    
-    @OnClose
-    public void myOnClose(final Session session, CloseReason cr) {
-    LOG.info("Closed connection! reason: {}, session: {}", cr, session);
-    }
+      private static String buildWebsocketUri(HttpHeaders httpHeaders) {
+        String hostName = httpHeaders.getRequestHeader("Host").get(0);
+        return String.format("wss://%s/%s", hostName, WEBSOCKET_CONNECT_PATH);
+      }
     }
     ```
 4.  Update `TwilioLiveTranscriptionDemoApplication.java` to provide the decoder to the websocket endpoint.  Update the `ServerEndpointConfig config` variable so it looks like the following:
@@ -723,7 +696,7 @@ The thread pool will run workers that listen for Twilio media stream messages an
 2.  Create a new class for transcription results output `TranscriptOutputMessageIF.java` under the model subpackage.  These are the messages the websocket will send back to the client or user.  
     ```java TranscriptOutputMessageIF.java
     package io.sethmachine.twiliolivetranscriptiondemo.core.model.speech.google;
-
+    
     import org.immutables.value.Value.Immutable;
     
     import com.hubspot.immutables.style.HubSpotStyle;
@@ -731,11 +704,10 @@ The thread pool will run workers that listen for Twilio media stream messages an
     @HubSpotStyle
     @Immutable
     public interface TranscriptOutputMessageIF {
-    String getText();
-    float getConfidence();
-    boolean getIsFinal();
+      String getText();
+      float getConfidence();
+      boolean getIsFinal();
     }
-
     ```
 3.  Create the thread runnable class `StreamingSpeechToTextRunnable.java` under the `core.concurrent.speech.google` package.  This is the code that each worker thread will execute for each incoming phone call audio stream.  It is based on the Google infinite stream example but heavily modified to add in the websocket connection and state.  
     ```java StreamingSpeechToTextRunnable.java
@@ -1069,7 +1041,7 @@ The thread pool will run workers that listen for Twilio media stream messages an
       }
     }
     ```
-4.  Create a factory class `StreamingSpeechToTextRunnableFactory.java` to allow dynamically creating each runnable with different websocket connection each time. 
+4.  Create a factory class `StreamingSpeechToTextRunnableFactory.java` to dynamically create each runnable with a different websocket connection each time. 
     ```java
     package io.sethmachine.twiliolivetranscriptiondemo.core.concurrent.speech.google;
 
@@ -1097,44 +1069,44 @@ The thread pool will run workers that listen for Twilio media stream messages an
     
     public class TwilioLiveTranscriptionDemoModule extends DropwizardAwareModule<Configuration> {
     
-    @Override
-    protected void configure() {
-    install(new FactoryModuleBuilder().build(StreamingSpeechToTextRunnableFactory.class));
+      @Override
+      protected void configure() {
+        install(new FactoryModuleBuilder().build(StreamingSpeechToTextRunnableFactory.class));
     
         configuration();
         environment();
         bootstrap();
-    }
+      }
     
-    @Provides
-    @Singleton
-    @Named("StreamingCloudSpeechToTextThreadPoolExecutor")
-    public ThreadPoolExecutor provideThreadPoolExecutorForCloudSpeechToText() {
-    return new ThreadPoolExecutor(
-    8,
-    100,
-    60,
-    TimeUnit.SECONDS,
-    new LinkedBlockingQueue()
-    );
-    }
+      @Provides
+      @Singleton
+      @Named("StreamingCloudSpeechToTextThreadPoolExecutor")
+      public ThreadPoolExecutor provideThreadPoolExecutorForCloudSpeechToText() {
+        return new ThreadPoolExecutor(
+            8,
+            100,
+            60,
+            TimeUnit.SECONDS,
+            new LinkedBlockingQueue()
+        );
+      }
     
-    @Provides
-    @Singleton
-    public ObjectMapper provideObjectMapper() {
-    return bootstrap().getObjectMapper();
-    }
+      @Provides
+      @Singleton
+      public ObjectMapper provideObjectMapper() {
+        return bootstrap().getObjectMapper();
+      }
     }
     ```
 
 ### Websocket Speech to Text service
 
-In this section we will create a class to manage how the thread pool is started or how existing workers are stopped (e.g. the phone call ends).  
+In this section we will create a class to manage how each worker in the thread pool is started (e.g. a phone call connects) and stopped (e.g. a phone call ends).  
 
 1.  Create a new service class `StreamingSpeechToTextService.java` under subpackage `service.speech.google`.  
     ```java StreamingSpeechToTextService.java
     package io.sethmachine.twiliolivetranscriptiondemo.service.speech.google;
-
+    
     import java.util.Optional;
     import java.util.concurrent.ThreadPoolExecutor;
     
@@ -1156,103 +1128,103 @@ In this section we will create a class to manage how the thread pool is started 
     
     public class StreamingSpeechToTextService {
     
-    private static final Logger LOG = LoggerFactory.getLogger(
-    StreamingSpeechToTextService.class
-    );
+      private static final Logger LOG = LoggerFactory.getLogger(
+        StreamingSpeechToTextService.class
+      );
     
-    private final ThreadPoolExecutor speechToTextThreadPoolExecutor;
-    private final StreamingSpeechToTextRunnableFactory streamingSpeechToTextRunnableFactory;
+      private final ThreadPoolExecutor speechToTextThreadPoolExecutor;
+      private final StreamingSpeechToTextRunnableFactory streamingSpeechToTextRunnableFactory;
     
-    @Inject
-    public StreamingSpeechToTextService(
-    @Named(
-    "StreamingCloudSpeechToTextThreadPoolExecutor"
-    ) ThreadPoolExecutor threadPoolExecutor,
-    StreamingSpeechToTextRunnableFactory streamingSpeechToTextRunnableFactory
-    ) {
-    this.speechToTextThreadPoolExecutor = threadPoolExecutor;
-    this.streamingSpeechToTextRunnableFactory = streamingSpeechToTextRunnableFactory;
-    }
+      @Inject
+      public StreamingSpeechToTextService(
+        @Named(
+          "StreamingCloudSpeechToTextThreadPoolExecutor"
+        ) ThreadPoolExecutor threadPoolExecutor,
+        StreamingSpeechToTextRunnableFactory streamingSpeechToTextRunnableFactory
+      ) {
+        this.speechToTextThreadPoolExecutor = threadPoolExecutor;
+        this.streamingSpeechToTextRunnableFactory = streamingSpeechToTextRunnableFactory;
+      }
     
-    public void handleStreamMessage(Session session, StreamMessage streamMessage) {
-    switch (streamMessage.getMessageEventType()) {
-    case CONNECTED:
-    handleConnectedMessage(session, (ConnectedMessage) streamMessage);
-    break;
-    case START:
-    handleStartMessage(session, (StartMessage) streamMessage);
-    break;
-    case MEDIA:
-    handleMediaMessage(session, (MediaMessage) streamMessage);
-    break;
-    case STOP:
-    handleStreamClose(session);
-    break;
-    default:
-    LOG.error(
-    "[sessionId: {}] Unhandled message event type for StreamMessage: {}",
-    session.getId(),
-    streamMessage
-    );
-    }
-    }
+      public void handleStreamMessage(Session session, StreamMessage streamMessage) {
+        switch (streamMessage.getMessageEventType()) {
+          case CONNECTED:
+            handleConnectedMessage(session, (ConnectedMessage) streamMessage);
+            break;
+          case START:
+            handleStartMessage(session, (StartMessage) streamMessage);
+            break;
+          case MEDIA:
+            handleMediaMessage(session, (MediaMessage) streamMessage);
+            break;
+          case STOP:
+            handleStreamClose(session);
+            break;
+          default:
+            LOG.error(
+              "[sessionId: {}] Unhandled message event type for StreamMessage: {}",
+              session.getId(),
+              streamMessage
+            );
+        }
+      }
     
-    public void handleStreamClose(Session session) {
-    getRunnableFromSession(session)
-    .ifPresentOrElse(
-    StreamingSpeechToTextRunnable::stop,
-    () -> LOG.info("Attempted to stop session but no runnable found: {}", session)
-    );
-    }
+      public void handleStreamClose(Session session) {
+        getRunnableFromSession(session)
+          .ifPresentOrElse(
+            StreamingSpeechToTextRunnable::stop,
+            () -> LOG.info("Attempted to stop session but no runnable found: {}", session)
+          );
+      }
     
-    private void handleConnectedMessage(
-    Session session,
-    ConnectedMessage connectedMessage
-    ) {
-    LOG.info(
-    "[sessionId: {}] Received connected message: {}",
-    session.getId(),
-    connectedMessage
-    );
-    }
+      private void handleConnectedMessage(
+        Session session,
+        ConnectedMessage connectedMessage
+      ) {
+        LOG.info(
+          "[sessionId: {}] Received connected message: {}",
+          session.getId(),
+          connectedMessage
+        );
+      }
     
-    private void handleStartMessage(Session session, StartMessage startMessage) {
-    LOG.info("[sessionId: {}] Received start message: {}", session.getId(), startMessage);
-    StreamingSpeechToTextRunnable streamingSpeechToTextRunnable = streamingSpeechToTextRunnableFactory.create(
-    session
-    );
-    session.addMessageHandler(streamingSpeechToTextRunnable);
-    speechToTextThreadPoolExecutor.execute(streamingSpeechToTextRunnable);
-    }
+      private void handleStartMessage(Session session, StartMessage startMessage) {
+        LOG.info("[sessionId: {}] Received start message: {}", session.getId(), startMessage);
+        StreamingSpeechToTextRunnable streamingSpeechToTextRunnable = streamingSpeechToTextRunnableFactory.create(
+          session
+        );
+        session.addMessageHandler(streamingSpeechToTextRunnable);
+        speechToTextThreadPoolExecutor.execute(streamingSpeechToTextRunnable);
+      }
     
-    private void handleMediaMessage(Session session, MediaMessage mediaMessage) {
-    StreamingSpeechToTextRunnable streamingSpeechToTextRunnable = getRunnableFromSession(
-    session
-    )
-    .orElseThrow();
-    streamingSpeechToTextRunnable.onMessage(mediaMessage);
-    }
+      private void handleMediaMessage(Session session, MediaMessage mediaMessage) {
+        StreamingSpeechToTextRunnable streamingSpeechToTextRunnable = getRunnableFromSession(
+          session
+        )
+          .orElseThrow();
+        streamingSpeechToTextRunnable.onMessage(mediaMessage);
+      }
     
-    private Optional<StreamingSpeechToTextRunnable> getRunnableFromSession(
-    Session session
-    ) {
-    try {
-    return Optional.of(
-    (StreamingSpeechToTextRunnable) Iterables.getOnlyElement(
-    session.getMessageHandlers()
-    )
-    );
-    } catch (Exception e) {
-    LOG.error("Failed to get runnable from session: {}", session, e);
-    return Optional.empty();
-    }
-    }
+      private Optional<StreamingSpeechToTextRunnable> getRunnableFromSession(
+        Session session
+      ) {
+        try {
+          return Optional.of(
+            (StreamingSpeechToTextRunnable) Iterables.getOnlyElement(
+              session.getMessageHandlers()
+            )
+          );
+        } catch (Exception e) {
+          LOG.error("Failed to get runnable from session: {}", session, e);
+          return Optional.empty();
+        }
+      }
     }
     ```
 2.  Modify the existing `TwilioAudioStreamWebsocketResource.java` websocket resource to use the service class.  In particular, we want to start the worker when a new websocket connection is made `StreamingSpeechToTextService#handleStreamMessage` and stop an existing worker when a phone call ends via `StreamingSpeechToTextService#handleStreamClose`.  
     ```java TwilioAudioStreamWebsocketResource.java
     package io.sethmachine.twiliolivetranscriptiondemo.resources;
-
+    
     import java.io.IOException;
     
     import javax.inject.Inject;
@@ -1280,54 +1252,86 @@ In this section we will create a class to manage how the thread pool is started 
     @Timed
     @ExceptionMetered
     @ServerEndpoint(
-    value = "/twilio/websocket/audio-stream",
-    configurator = GuiceWebsocketConfigurator.class,
-    decoders = { StreamMessageDecoder.class }
+        value = "/twilio/websocket/audio-stream",
+        configurator = GuiceWebsocketConfigurator.class,
+        decoders = { StreamMessageDecoder.class }
     )
     public class TwilioAudioStreamWebsocketResource {
     
-    private static final Logger LOG = LoggerFactory.getLogger(
-    TwilioAudioStreamWebsocketResource.class
-    );
+      private static final Logger LOG = LoggerFactory.getLogger(
+          TwilioAudioStreamWebsocketResource.class
+      );
     
-    private StreamingSpeechToTextService streamingSpeechToTextService;
-    private ObjectMapper objectMapper;
+      private StreamingSpeechToTextService streamingSpeechToTextService;
+      private ObjectMapper objectMapper;
     
-    private Session session;
+      private Session session;
     
-    @Inject
-    public TwilioAudioStreamWebsocketResource(
-    StreamingSpeechToTextService streamingSpeechToTextService,
-    ObjectMapper objectMapper
-    ) {
-    this.streamingSpeechToTextService = streamingSpeechToTextService;
-    this.objectMapper = objectMapper;
-    }
+      @Inject
+      public TwilioAudioStreamWebsocketResource(
+          StreamingSpeechToTextService streamingSpeechToTextService,
+          ObjectMapper objectMapper
+      ) {
+        this.streamingSpeechToTextService = streamingSpeechToTextService;
+        this.objectMapper = objectMapper;
+      }
     
-    @OnOpen
-    public void myOnOpen(final Session session) throws IOException {
-    LOG.info(
-    "[sessionId: {}] Websocket session connection opened: {}",
-    session.getId(),
-    session
-    );
-    session.getAsyncRemote().sendText("Ready to receive live transcription results");
-    this.session = session;
-    }
+      @OnOpen
+      public void myOnOpen(final Session session) throws IOException {
+        LOG.info(
+            "[sessionId: {}] Websocket session connection opened: {}",
+            session.getId(),
+            session
+        );
+        session.getAsyncRemote().sendText("Ready to receive live transcription results");
+        this.session = session;
+      }
     
-    @OnMessage
-    public void myOnMsg(final Session session, StreamMessage streamMessage) {
-    streamingSpeechToTextService.handleStreamMessage(session, streamMessage);
-    }
+      @OnMessage
+      public void myOnMsg(final Session session, StreamMessage streamMessage) {
+        streamingSpeechToTextService.handleStreamMessage(session, streamMessage);
+      }
     
-    @OnClose
-    public void myOnClose(final Session session, CloseReason cr) {
-    LOG.info("Closed connection! reason: {}, session: {}", cr, session);
-    streamingSpeechToTextService.handleStreamClose(session);
-    }
+      @OnClose
+      public void myOnClose(final Session session, CloseReason cr) {
+        LOG.info("Closed connection! reason: {}, session: {}", cr, session);
+        streamingSpeechToTextService.handleStreamClose(session);
+      }
     }
     ```
 
+## Live Transcription
 
+With all the business logic completed, we can test live transcription with another phone call to the phone number we set up in [Buy and configure a phone number](#buy-and-configure-a-phone-number).
+
+1.  Run the Java server 
+2. Expose the server via ngrok `ngrok http 8080`
+3. Copy the ngrok forwarding URL (looks something like `https://5e32-73-125-186-111.ngrok-free.app`)
+4. Update the Twilio webhook configuration for when a call comes in, it should look something like `https://5e32-73-125-186-111.ngrok-free.app/twilio/webhooks/inbound-call`.  See [Buy and configure a phone number](#buy-and-configure-a-phone-number) if you need a refresher on how to do this.  
+5. Open [PieSocket WebSocket Tester](https://chrome.google.com/webstore/detail/piesocket-websocket-teste/oilioclnckkoijghdniegedkbocfpnip) in Chrome browser.  
+6. Enter `ws://localhost:8080/twilio/websocket/audio-stream` for Location and and hit Connect.
+   ![Connect PieSocket](test-live-transcription/piewebsocket-part-1.png)
+7. Confirm the connection is successful, it should look like below:
+   ![Connect PieSocket Result](test-live-transcription/piewebsocket-part-2.png)
+8. Place a phone call to the purchased Twilio phone number.  After the connection message plays, speak English like "I would like to buy a bicycle".  You should observe transcription output in both PieSocket and the Java console!  
+   ![PieSocket Live Transcription Output](test-live-transcription/piewebsocket-part-3.png)
+   ![Java Live Transcription Output](test-live-transcription/piewebsocket-part-4.png)
+
+If you're seeing live transcription output as you speak, congratulations, it's working!  You can continue speaking and see the live transcription stream output.  It will end after 60 seconds have passed or the call has hung up (whichever happens first).  
+
+The output comes in two flavors depending on whether the result is final or not:
+
+* `{"text":"like to buy a","confidence":0.0,"isFinal":false}` is a non final result as indicate by `"isFinal"` being set to `false`.  
+* `{"text":"like to buy a bicycle","confidence":0.7173231,"isFinal":true}` is a final result, and even has a confidence score associated with it.  
+
+The speech to text algorithm is constantly listening to speech input and waiting for it to end before producing a final result.  Depending upon the application, it may be useful to have both outputs, or only use the final one.     
 
 ## Conclusion
+
+We have created a Java web server that live transcribes phone calls with Twilio and Google Cloud Speech to Text.  The server is able to handle incoming media streams from Twilio, stream these to Google Cloud Speech to Text, and finally stream the live transcription results over a WebSocket connection for an end user or application to use.
+
+Nevertheless, there are still several key areas we did not address to make this system production ready.  Each of these would be good follow-up projects to expand upon what we built:
+* Authenticate incoming media stream.  The ingestion websocket is not secure.  We need to prove that Twilio is sending in the audio bytes, otherwise a malicious actor could send in their own audio bytes!    
+* Secure live transcription websocket output.  The current implementation broadcasts all transcription results through a public and insecure websocket.  We need to add security to make sure only authorized users (e.g. those on the call) can see the live transcription output.  
+* Scalability.  Because websockets are stateful, it can be non-trivial to scale the WebSockets server.  See this [Ably article](https://ably.com/topic/the-challenge-of-scaling-websockets) on why this is challenging.
+* Handling multiple speakers or channels.  The current system simple transcribes all audio bytes into a single transcription output.  Twilio provides some metadata to help distinguish audio from either speaker on the phone call.  This way we can distinguish between who said what when (e.g. a form of [speaker diarization](https://en.wikipedia.org/wiki/Speaker_diarisation)).  

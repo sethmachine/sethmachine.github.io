@@ -22,14 +22,16 @@ This article provides a detailed guide on how to create your own Java live trans
 
 Before getting started, you'll need the following accounts or tools installed:
 * [A Twilio account](https://www.twilio.com/try-twilio)
-* [A Google Cloud account](https://cloud.google.com/free)
-* [IntelliJ Java IDE or equivalent](https://www.jetbrains.com/idea/download/)
+* [A Google Cloud account](https://cloud.google.com/free)<sup>*</sup>
+* [IntelliJ Java IDE](https://www.jetbrains.com/idea/download/) or equivalent
 * [Maven](https://maven.apache.org/)
 * [ngrok](https://ngrok.com/docs/getting-started/)
 * [PieSocket WebSocket Tester](https://chrome.google.com/webstore/detail/piesocket-websocket-teste/oilioclnckkoijghdniegedkbocfpnip)
 
 If you would like to dive straight into the code, the demo source code is available in a public GitHub repository.  You may still need to reference this guide for setting up the demo.  
 * GitHub: https://github.com/sethmachine/twilio-live-transcription-demo-public
+
+<sup>*</sup>I recommend Google Cloud Speech To Text as it's the easiest to set up with live transcription, but it could be substituted for any other cloud provider of speech to text that offers a similar streaming API.  
 
 ## WebSockets Approach
 
@@ -270,7 +272,7 @@ After ngrok is installed, run ngrok and verify it is correctly exposing the serv
   <Pause length="60" />
 </Response>
    ```
-   Note this response the stream URL also points to the exposed ngrok endpoint.  This will make sure Twilio sends audio byte streams to the same server.  
+   In the response the stream URL also points to the exposed ngrok endpoint.  This will make sure Twilio sends audio byte streams to the same server.  
 
 ## Buy and configure a phone number
 
@@ -281,7 +283,7 @@ In this section we will verify the server is working with a real phone call.  Fi
 2. (Optional) Search for any particular phone number that has voice capability.  In this case I recommend any cheap phone number in the U.S.
 3. Buy the phone number.  This will cost actual money but it is a very small monthly charge (e.g. 25 cents a month) and you can later delete the phone number once finished to avoid future monthly costs.  Some Twilio trial accounts come with free credits so you may not end up paying for anything at all until the credits are used up.    
    ![Buy Twilio Phone Number part 2](buy-twilio-phone-number-part-2.png)
-4. After purchasing successfully, open the configuration for the newly purchased phone number
+4. After successfully purchasing, open the configuration for the newly purchased phone number
    ![Buy Twilio Phone Number part 3](buy-twilio-phone-number-part-3.png)
 5. Under Voice Configuration, replace the URL for the webhook **A call comes in** with the ngrok forwarding URL and the server endpoint path `/twilio/webhooks/inbound-call`.  E.g. it should look like `https://31d0-2601-189-8000-c3f0-7c5c-caaa-3da3-78f1.ngrok-free.app/twilio/webhooks/inbound-call`.  Your particular ngrok forwarding URL will be unique and different from the one in the guide.  
 6. Set the HTTP select box method to HTTP GET.
@@ -319,7 +321,7 @@ In the previous sections we were able to successfully open a websocket audio str
 For a bird's eye view see all the model files in the demo repo: [Twilio Live Transcription Demo Media Streams Models](https://github.com/sethmachine/twilio-live-transcription-demo-public/tree/main/src/main/java/io/sethmachine/twiliolivetranscriptiondemo/core/model/twilio/stream)
 
 1.  Create a new `core.model.twilio.stream` package under the root package.  E.g. the full package path on my implementation would be: `package io.sethmachine.twiliolivetranscriptiondemo.core.model.twilio.stream`.  
-2. Create two additional subpackages, `messages` for the modeling the stream messages, and `mediaformat` for modeling the audio format of each message.
+2. Create two additional subpackages, `messages` for modeling the stream messages, and `mediaformat` for modeling the audio format of each message.
 3.  Create another subpackage under `core.model.twilio.stream.messages` called `payloads`.  This will model information specific to the nested payloads on each message.  
 4. Create an immutable class `MediaFormatIF` in the `mediaformat` package.  This class will provide information on the audio format of each media message, so we can tell Google Speech To Text how to interpret the audio bytes.
     ```java MediaFormatIF.java
@@ -387,7 +389,7 @@ For a bird's eye view see all the model files in the demo repo: [Twilio Live Tra
       String getCallSid();
     }
     ```
-6.  Create `MessageEventType.java` enum class to model the four kinds of messages Twilio can send through the audio stream.  Knowing the type of the message will allow for deserializing the message with the right message model.  
+6.  Create `MessageEventType.java` enum class to model the four kinds of messages Twilio can send through the audio stream.  This will help to deserialize each incoming Twilio stream message into the equivalent Java model.  
     ```java MessageEventType.java
     package io.sethmachine.twiliolivetranscriptiondemo.core.model.twilio.stream.messages;
     
@@ -1340,3 +1342,5 @@ Nevertheless, there are still several key areas we did not address to make this 
 * Secure live transcription websocket output.  The current implementation broadcasts all transcription results through a public and insecure websocket.  We need to add security to make sure only authorized users (e.g. those on the call) can see the live transcription output.  
 * Scalability.  Because websockets are stateful, it can be non-trivial to scale the WebSockets server.  See this [Ably article](https://ably.com/topic/the-challenge-of-scaling-websockets) on why this is challenging.
 * Handling multiple speakers or channels.  The current system simple transcribes all audio bytes into a single transcription output.  Twilio provides some metadata to help distinguish audio from either speaker on the phone call.  This way we can distinguish between who said what when (e.g. a form of [speaker diarization](https://en.wikipedia.org/wiki/Speaker_diarisation)).  
+
+Have thoughts on how to improve this or scale it for production, or need help getting the demo working?  Please leave a comment and I'd be happy to discuss more with you!

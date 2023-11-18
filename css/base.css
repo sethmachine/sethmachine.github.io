@@ -697,3 +697,7 @@ a:hover {
   line-height: 1rem;
   white-space: nowrap;
 }
+
+.post-tags {
+  flex-wrap: wrap;
+}

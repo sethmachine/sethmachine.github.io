@@ -14,54 +14,56 @@ tags:
 // clearly outline the entirety of the problems that your tool is addressing
 // what is your overall outcome you're looking to achieve?
 
-In this article I will introduce [RichChk](https://github.com/sethmachine/richchk)--a Python library that allows directly editing StarCraft maps in order to create custom games.  Custom games can be thought of as mods built on top of the StarCraft engine that completely change how the game plays.  While this article is mostly related to StarCraft, my project demonstrates how to apply software engineering best practices such as data immutability, functional programming, static typing, unit tests, code linters, GitHub Actions/Workflows, etc.  Indeed, I believe that experienced software engineers and coders have a superpower that can be applied with multiplicative force to build high quality software that can immensely benefit others unrelated to usual business endeavors.  I will first give a brief overview of StarCraft and its rich history of custom games.  After that I will dive into RichChk: what it is, why I made it, and how it works.  Finally, I will provide a brief survey of other existing tools comparable to RichChk and how these compare and contrast.  
+In this article I will introduce [RichChk](https://github.com/sethmachine/richchk)--a library that allows directly editing StarCraft maps in Python.  Maps, or custom games, can be thought of as mods built on top of the StarCraft engine that completely change the gameplay.  While this article is mostly related to StarCraft, I'll also cover coding best practices such as immutability, functional programming, static typing, unit tests, linters, and GitHub Actions/Workflows, etc. as I've applied them to create a maintainable codebase.  I will first give a brief history of [StarCraft and custom games](#StarCraft).  After that I will dive into RichChk: [what it is](#What-is-RichChk), [why I made it](#Why-RichChk), and [how it works](#How-RichChk-works).  I will then cover how I've applied [coding best practices](#Coding-best-practices) and why these are invaluable to any project.  At the end, I will provide a brief survey of other existing tools to supplement custom game creation.  
 
-## StarCraft Custom Games
-[StarCraft](https://us.shop.battle.net/en-us/product/starcraft) was first released by Blizzard Entertainment in 1998 as a science fiction [real-time strategy (RTS)](https://en.wikipedia.org/wiki/Real-time_strategy) game where players contend for the fate of the galaxy controlling 3 different races: Terran, Zerg, and Protoss.  Two key factors propelled StarCraft to massive popularity: (1) free online multiplayer with [Blizzard's revolutionary Battle.net](https://en.wikipedia.org/wiki/Battle.net) and (2) the ability players to create custom games within the StarCraft engine via [StarEdit](https://us.forums.blizzard.com/en/starcraft/t/public-staredit-download/457).  A typical smattering of lobbies of online multiplayer custom games is shown below:   
+## StarCraft
+
+### History
+[StarCraft](https://us.shop.battle.net/en-us/product/starcraft) was first released by Blizzard Entertainment in 1998 as a science fiction [real-time strategy (RTS)](https://en.wikipedia.org/wiki/Real-time_strategy) game where players contend for the fate of the galaxy controlling 3 different races: Terran, Zerg, and Protoss.  
+
+![Zerg vs Protoss!](richchk/starcraft-promo-image.png)
+
+
+Two key factors that  propelled StarCraft to massive popularity include: (1) free online multiplayer with [Blizzard's Battle.net](https://en.wikipedia.org/wiki/Battle.net) and (2) 1st party support for creating mods using [StarEdit](https://us.forums.blizzard.com/en/starcraft/t/public-staredit-download/457) which allows for infinite replayability.  A typical smattering of lobbies of online multiplayer custom games is shown below:   
 
 ![StarCraft custom games lobbies in 2024](richchk/starcaft-custom-games-example.PNG)
 
-The community eventually developed a more powerful map editor called [ScmDraft 2](http://www.stormcoast-fortress.net/cntt/software/scmdraft), which [Blizzard officially endorsed in June 2019](https://us.forums.blizzard.com/en/starcraft/t/staredit-deprecation-in-patch-1-23-0/223).  During the early 2000s, a massive online community grew dedicated exclusively playing these custom maps, which were often implementations of other video games ([Elder Scrolls Oblivion RPG](http://sc.nibbits.com/maps/project/78115/oblivion-rpg-2013)) or universes (e.g. Lord of the Rings StarCraft war maps).  Even [MOBA](https://en.wikipedia.org/wiki/Multiplayer_online_battle_arena) games like [Dota 2](https://www.dota2.com/) and [League of Legends](https://www.leagueoflegends.com/en-us/) can trace their ancestry to the original StarCraft custom map, [Aeon of Strife](https://starcraft.fandom.com/wiki/Aeon_of_Strife_(map)).  Fast forward to 2024, and while the custom games community is much smaller, there is still a large active group on various forums, such as [staredit.net](http://www.staredit.net/) and new custom games are being regularly produced and updated.  
+The community eventually developed a more powerful map editor called [ScmDraft 2](http://www.stormcoast-fortress.net/cntt/software/scmdraft), which [Blizzard officially endorsed in June 2019](https://us.forums.blizzard.com/en/starcraft/t/staredit-deprecation-in-patch-1-23-0/223).  During the early 2000s, a massive online community grew dedicated exclusively playing these custom maps, which were often implementations of other video games ([Elder Scrolls Oblivion RPG](http://sc.nibbits.com/maps/project/78115/oblivion-rpg-2013)) or universes (e.g. Lord of the Rings battles like Helms Deep).  Even [MOBA](https://en.wikipedia.org/wiki/Multiplayer_online_battle_arena) games like [Dota 2](https://www.dota2.com/) and [League of Legends](https://www.leagueoflegends.com/en-us/) can trace their ancestry to the original StarCraft custom map, [Aeon of Strife](https://starcraft.fandom.com/wiki/Aeon_of_Strife_(map)).  Fast forward to 2024, and while the custom games community is much smaller, there is still a large active group on various forums, such as [staredit.net](http://www.staredit.net/) and new custom games are being regularly produced and updated.  
 
-### StarCraft Map Files
+### Map Files
 
-Each unique StarCraft custom game is contained entirely within a map file.  These map files are stored in a [binary MPQ archive file](https://encyclopedia.pub/entry/37738) with either a .SCM or .SCX file extension.  Contained within the MPQ archive, the map data itself is stored as a [CHK file](https://www.starcraftai.com/wiki/CHK_Format), which is a compact binary format that represents all the data required to play a single instance of a game of StarCraft 
+Each unique StarCraft custom game is contained entirely within a map file.  These map files are stored in an [MPQ archive file](https://encyclopedia.pub/entry/37738) with either a .SCM or .SCX file extension.  Contained within the MPQ archive, is the [CHK file](https://www.starcraftai.com/wiki/CHK_Format), which is a compact binary format containing all the data needed to play the custom game.  
 
-Without 3rd party tools, the binary map file is not human-readable and can only be opened with StarEdit or ScmDraft  The map file contains everything needed for a custom game to function: terrain, unit/structure placements, locations data, etc., but also the business logic of the map which is expressed through Triggers.  Triggers can be thought of as a high level scripting language to control the StarCraft engine.  In some sense, maps can be thought of combining the frontend (how the map looks) and backend (how the map plays) into a single file.  This is ideal for peer to peer transmission and downloading of maps, especially when bandwidth was quite limited in the early days of online gaming.  However, this is not ideal from the perspective of creating and maintaining a custom game, as it makes it hard to decouple the visuals from the business logic.  
+Without 3rd party tools, the binary map file is not human-readable and can only be opened with StarEdit or ScmDraft.  The map file contains everything: the terrain, unit/structure placements, locations data, etc., but also the business logic of the map which is expressed via Triggers.  Triggers are a high level scripting language that controls the StarCraft engine.  Maps can be thought of combining the frontend (how the map looks) and backend (how the map plays) in a single file.  This is ideal for peer to peer transmission and downloading of maps, especially when bandwidth was quite limited in the early days of online gaming.  However, this is not ideal from the perspective of creating and maintaining a custom game, as it becomes hard to decouple the visuals from the business logic.  
 
-RichChk solves the problem of separating the map visuals from its business logic.  RichChk accomplishes this by allowing map makers edit all aspects of a StarCraft map in Python without ever opening a GUI map editor.  This allows for using traditional software engineering practices like version control, and decouples the map's visuals from its business logic.
+RichChk solves the problem of separating the map visuals from its business logic.  RichChk accomplishes this by allowing map makers to edit all aspects of a StarCraft map in Python without ever opening a GUI map editor.  This allows for using traditional software engineering practices like version control, and decouples the map's visuals from its business logic.
 
 ## What is RichChk?
 
-RichChk is a Python library that directly editing StarCraft's CHK files, and hence editing StarCraft map files in Python without ever needing to open a GUI program.  RichChk provides a semantically **rich** and human readable model of the **CHK** format, hence the naming.  As stated earlier, the traditional creation of StarCraft maps is done in a visual GUI program like StarEdit or ScmDraft.  GUI editors are ideal for visual aspects such as the terrain or unit placements.  However, the business logic of a map is done through Triggers.  This is where the map editors fall short: there is no way to organize or re-use Triggers as one might do for a modern codebase.  
-
+RichChk is a Python library that allows editing StarCraft's CHK files, and hence the ability to modify StarCraft map files in Python without ever needing to open a GUI program.  RichChk provides a semantically **rich** and human-readable model of the **CHK** format.  The traditional creation of StarCraft maps is done in a visual GUI program like StarEdit or ScmDraft.  GUI editors are ideal for visual aspects such as the terrain or unit placements.  However, the business logic of a map is done through Triggers.  This is where the map editors fall short: there is no way to organize or re-use Triggers as one might do for a modern codebase.  
 
 ![ScmDraft 2 Map Editor](richchk/scmdraft-open-example.png)
 
-The above image depicts [ScmDraft 2](http://www.stormcoast-fortress.net/cntt/software/scmdraft), a GUI based program to visually create and edit StarCraft custom games.  RichChk offers the same exact functionality as the GUI editor, but with the advantage of being able to modify the map purely in Python.
+The above image depicts [ScmDraft 2](http://www.stormcoast-fortress.net/cntt/software/scmdraft), a GUI based program to visually create and edit StarCraft custom games.  
 
-[RichChk](https://github.com/sethmachine/richchk) is an open source Python library I developed for the purpose of creating, editing, and maintaining StarCraft custom maps.  RichChk provides human readable, fully typed, and [b]rich[/b] semantic model of the [StarCraft CHK format](http://www.staredit.net/wiki/index.php/Scenario.chk), which contains all the data for a StarCraft map/custom game.  Thus, why the library is called RichChk--a rich representation of the CHK format.  RichChk is powerful and unique in several aspects.  RichChk allows editing all aspects of a StarCraft map in Python and save directly to a StarCraft map file without ever opening a GUI map editor.  RichChk
-
-
-RichChk is a Python library that semantically models the [StarCraft Brood War CHK format], allowing for editing all aspects of a map entirely in Python.
-
-RichChk is a massive ergonomic and efficiency improvement for creating StarCraft custom maps.  This is because it has the ability to edit all sections of the CHK file in Python and save directly to an existing StarCraft map file (an MPQ archive typically with a .SCX/.SCM file extension).  There are existing ways to write triggers outside the StarEdit/ScmDraft GUI, but these are text based and must be copy and pasted back into the
-
-RichChk allows for directly editing StarCraft's CHK files, a compact binary format that represents all the data required to play a single instance of a game of StarCraft.  Traditional creation of StarCraft maps is done in a visual GUI editor, which is ideal for visual aspects such as the terrain or unit placements.  However, the business logic of a map is done through Triggers, which can be thought of as a high level procedural scripting language on top of the StarCraft engine.  This is where the map editors fall short, as there is no way to organize or re-use Triggers as one might do for a modern codebase.
-
-RichChk fills in this gap, by allowing all of a custom game's business logic to be written in Python and be translated directly to the binary CHK format that StarCraft reads.  This is a massive user experience improvement for mapmakers, allowing them to leverage all of the advantages of modern coding practices such as version control, re-using code, high modularity and maintainability, unit tests, semantic versioning, etc.
+RichChk offers the same exact functionality as any GUI map editor, but with the advantage of being able to modify the map purely in Python.
 
 ## Why RichChk?
 
-I made RichChk to provide myself a powerful and flexible way to create and maintain custom game projects for StarCraft.  This can be viewed as a massive ergonomic and user experience improvement.  Unlike the visual editors, RichChk is 100% Python, and thus can be used to maintain any project like a modern codebase.  This includes version control and all the other advantages of using a well known programming language like Python.  The binary map file is not human readable or interpretable directly without using an external program.  
-
-One of the difficulties of making complex games in StarCraft is working with the [Triggers engine](http://classic.battle.net/scc/faq/triggers.shtml), which arguably is the most important aspect of a custom game, as it contains all the business logic for the modifying the game behavior.  For any non-trivial map, creating, maintaining, and updating these systems quickly become unwieldy.  Consider the following trigger as shown in the ScmDraft editor:
+RichChk allows decoupling the visuals of a map (terrain, unit placements, etc.) from its business logic (expressed via Triggers), and maintain it  business logic in Python.  This can provide map makers a massive ergonomic and user experience improvement. One of the difficulties of making complex games in StarCraft is working with the [Triggers engine](http://classic.battle.net/scc/faq/triggers.shtml), which arguably is the most important aspect of a custom game, as it contains all the business logic for the modifying the game behavior.  For any non-trivial map, creating, maintaining, and updating these systems quickly become unwieldy.  Consider the following trigger as shown in the ScmDraft editor:
 
 ![ScmDraft Trigger Example for Garrison](richchk/scmdraft-trigger-example-garrison.png)
 
-The trigger consists of 3 parts, two of which are shown.  On the left are the conditions, which are the boolean statements that all must be satisfied for the trigger to execute.  On the right are the actions, which is what will happen if the conditions are true.  This single trigger is just one part of a much larger trigger system for "Garrisons" in this custom map: if a player controlled building comes under attack, defending units will automatically emerge to protect the structure.  This particular trigger handles the case where an opposing player captures an enemy structure.  Conditions and actions must be added one by one in the GUI from a dropdown menu.  While each trigger can be copied to help reduce boilerplate, there is no way to reference other triggers, variables, data structures, or external data to configure them.  For a Garrison system like this, there can be an upward of 4 triggers per player to model each state per structure on the map, which is roughly 32 triggers per player.  At this scale, it becomes a mind-numbing task to manually copy each trigger and replace the data so it works for each player.  This is also prone to human error in manually copying the data.  Imagine if there is a mistake or a future enhancement needs to happen!  
+A trigger consists of conditions and actions.  On the left are the conditions, which are the boolean statements that all must be satisfied for the trigger to execute.  On the right are the actions, which is what will happen if the conditions are true.  This single trigger is just one part of a much larger trigger system for "Garrisons" in this custom map which has the following functional requirements: 
 
-Now consider how this system could be built in RichChk using pure Python:
+* player controlled units emerge from the garrison when enemies attack it
+* player controlled units return to the garrison when there are no more enemies nearby
+* if a player defeats all units around an enemy's garrison, the player is given control of it
+
+
+This particular trigger handles the case where an opposing player captures an enemy structure by defeating all nearby enemy units.  Conditions and actions must be added one by one in the GUI from a dropdown menu.  While each trigger can be copied to help reduce boilerplate, there is no way to reference other triggers, variables, data structures, or external data to configure them.  For a Garrison system like this, there can be an upward of 4 triggers per player to model each state per structure on the map, which is roughly 32 triggers per player.  At this scale, it becomes a mind-numbing task to manually copy each trigger and replace the data so it works for each player.  This is also prone to human error in manually copying the data.  Imagine if there is a mistake or a future enhancement needs to happen!  
+
+Now consider building the Garrisons system using RichChk:
 
 ```python garrison_triggers.py
 def generate_garrison_captured_for_player(
@@ -122,54 +124,92 @@ def generate_garrison_captured_for_player(
     )
 ```
 
-This is the same trigger as early, but coded up in Python.  It is indeed verbose, but it is fully parameterized for each player via the `player: PlayerId` argument, and even supports different types of garrisons (structure type and unit type that comes out) via the `garrison: Garrison` data structure (a custom data structure used for convenience and unrelated to RichChk).  The `dc_timer: AllocatedDeathCounter` is used to increment state surrounding the garrison system.  With a simple for loop over players and garrisons, this can instantly generate all the triggers needed for allowing a player to capture an enemy's garrison structure.  If any modifications are needed, one simply edits this method and uses RichChk to create the new map.  E.g. playing a sound file to indicate the structure has been captured.  
+This is the same trigger as early, but coded up in Python.  It is indeed verbose, but it is fully parameterized for each player via the `player` argument, and even supports different types of garrisons via the `Garrison` custom data structure.  The `dc_timer` is a variable that tracks the state of the garrison system.  With a simple for loop over players and garrisons, this can instantly generate all the triggers needed for allowing a player to capture an enemy's garrison structure.  If any modifications are needed, one simply edits this method and uses RichChk to create the new map.  E.g. it would be trivial in the future to update this script to also play a particular sound file whenever a garrison is captured (via the `PlayWavAction`).  Doing so without RichChk might require manually editing hundreds of triggers!  
  
  
 ## How RichChk works
 
-RichChk implements the CHK format as fully detailed in [staredit.net's Scenario.chk wiki](http://www.staredit.net/wiki/index.php/Scenario.chk).  The CHK is extracted from a StarCraft MPQ file (.SCM or .SCX file extension) using [StormLib](http://www.zezula.net/en/mpq/stormlib.html), an open source C++ library for reading and writing MPQ archive files.  
+![How RichChk works](richchk/how-richk-works-diagram.png)
+
+RichChk implements the CHK format as fully detailed in [staredit.net's Scenario.chk wiki](http://www.staredit.net/wiki/index.php/Scenario.chk).  The CHK is extracted from a StarCraft MPQ file (.SCM or .SCX file extension) using [StormLib](http://www.zezula.net/en/mpq/stormlib.html), an open source C++ library for reading and writing MPQ archive files.  The task of parsing the binary format and the task of editing the CHK data divided into separate classes and models within RichChk.  This is because much of the CHK data references other CHK sections using IDs and array indices, so providing an editable layer hiding these details makes it much easier for a human to create and edit map data.  
+
+### Reading CHK data
+The CHK file is structured in a series of sections that follow one after the other.  Each section always has an 8-byte header with 4 bytes for its name and another 4 bytes for how long the section is in bytes.  This information allows tokenizing the CHK file into each section, and then parsing each section based on its specific format (each section has its own unique binary encoding). The CHK file is then decoded, section by section, into Python dataclass equivalents via the [ChkIo#decode_chk_file](https://github.com/sethmachine/richchk/blob/master/src/richchk/io/chk/chk_io.py#L56C9-L56C24), which get stored as a list in a [DecodedChk](https://github.com/sethmachine/richchk/blob/master/src/richchk/model/chk/decoded_chk.py#L12) object.  The actual decoding is a while loop operation that iterates over the bytes of the CHK file until no more sections are found, as shown in [ChkIo#_decode_chk_byte_stream](https://github.com/sethmachine/richchk/blob/master/src/richchk/io/chk/chk_io.py#L94).  There is a transcoder for each known CHK section which implements the [DecodedChkSectionTranscoder](https://github.com/sethmachine/richchk/blob/master/src/richchk/transcoder/chk/chk_section_transcoder.py#L15) protocol.  Each transcoder knows how to **decode** bytes into its section (read into Python objects), and how to **encode** back into the bytes representation (write back to CHK binary file).  For example, below is the `ChkMrgnTranscoder`, which knows to how go back and forth between bytes and the corresponding Python class `DecodedMrgnSection`.  The [MRGN](http://www.staredit.net/wiki/index.php/Scenario.chk#.22MRGN.22_-_Locations) represents all locations defined in a map (used to target specific regions of the map for trigger).  
 
 
-The CHK file is then decoded, section by section, into Python dataclass equivalents via the [ChkIo#decode_chk_file](https://github.com/sethmachine/richchk/blob/master/src/richchk/io/chk/chk_io.py#L56C9-L56C24), which get stored as a list in a [DecodedChk](https://github.com/sethmachine/richchk/blob/master/src/richchk/model/chk/decoded_chk.py#L12) object.  The actual decoding is a while loop operation that iterates over the bytes of the CHK file until no more sections are found, as shown in [ChkIo#_decode_chk_byte_stream](https://github.com/sethmachine/richchk/blob/master/src/richchk/io/chk/chk_io.py#L94).  For sections that are directly modeled by RichChk, these correspond to specific dataclasses like [DecodedTrgSection](https://github.com/sethmachine/richchk/blob/master/src/richchk/model/chk/trig/decoded_trig_section.py#L140) for the [CHK TRG section](http://www.staredit.net/wiki/index.php/Scenario.chk#.22TRIG.22_-_Triggers).  Most sections are not currently modeled, and handled by a special [DecodedUnknownSection](https://github.com/sethmachine/richchk/blob/master/src/richchk/model/chk/unknown/decoded_unknown_section.py), which is a wrapper around the unparsed bytes of that section.  These sections can be safely ignored until future contributions decide to model them, while still being able to edit the parsed sections.
+```python chk_mrgn_transcoder.py
+import struct
+from io import BytesIO
 
-The `DecodedChk` is still just a wrapper around the binary CHK format, and isn't editable even represented as Python objects.  Thus, the [RichChk](https://github.com/sethmachine/richchk/blob/master/src/richchk/model/richchk/rich_chk.py#L24) is introduced to model a high level, editable representation of all CHK data (not to be confused with the library name!).  Just as the `DecodedChk` contains all the binary CHK sections of a map file, the `RichChk` contains all the corresponding rich CHK sections, or more specifically a list of [RichChkSection](https://github.com/sethmachine/richchk/blob/master/src/richchk/model/richchk/rich_chk_section.py).  Compare the trigger models in [richchk.model.richchk.trig](https://github.com/sethmachine/richchk/tree/master/src/richchk/model/richchk/trig) to the lower level models in [richchk.model.chk.trig](https://github.com/sethmachine/richchk/tree/master/src/richchk/model/chk/trig).  The former has a plentiful taxonomy of classes and enums modeling how a human would understand and create triggers, while the latter is just a wrapper around the compact binary format triggers are stored in.
+from ....model.chk.mrgn.decoded_location import DecodedLocation
+from ....model.chk.mrgn.decoded_mrgn_section import DecodedMrgnSection
+from ....transcoder.chk.chk_section_transcoder import ChkSectionTranscoder
+from ....transcoder.chk.chk_section_transcoder_factory import _RegistrableTranscoder
 
-## Coding Best Practices
 
-### Unit tests
+class ChkMrgnTranscoder(
+    ChkSectionTranscoder[DecodedMrgnSection],
+    _RegistrableTranscoder,
+    chk_section_name=DecodedMrgnSection.section_name(),
+):
+    def decode(self, chk_section_binary_data: bytes) -> DecodedMrgnSection:
+        bytes_stream: BytesIO = BytesIO(chk_section_binary_data)
+        locations: list[DecodedLocation] = []
+        index = 0
+        while bytes_stream.tell() != len(chk_section_binary_data):
+            left_x1 = struct.unpack("I", bytes_stream.read(4))[0]
+            top_y1 = struct.unpack("I", bytes_stream.read(4))[0]
+            right_x2 = struct.unpack("I", bytes_stream.read(4))[0]
+            bottom_y2 = struct.unpack("I", bytes_stream.read(4))[0]
+            string_id = struct.unpack("H", bytes_stream.read(2))[0]
+            elevation_flags = struct.unpack("H", bytes_stream.read(2))[0]
+            locations.append(
+                DecodedLocation(
+                    _left_x1=left_x1,
+                    _top_y1=top_y1,
+                    _right_x2=right_x2,
+                    _bottom_y2=bottom_y2,
+                    _string_id=string_id,
+                    _elevation_flags=elevation_flags,
+                )
+            )
+            index += 1
+        return DecodedMrgnSection(_locations=locations)
 
-### Cross platform support
+    def _encode(self, decoded_chk_section: DecodedMrgnSection) -> bytes:
+        data: bytes = b""
+        for location in decoded_chk_section.locations:
+            data += struct.pack("I", location.left_x1)
+            data += struct.pack("I", location.top_y1)
+            data += struct.pack("I", location.right_x2)
+            data += struct.pack("I", location.bottom_y2)
+            data += struct.pack("H", location.string_id)
+            data += struct.pack("H", location.elevation_flags)
+        return data
+```
 
-### Static typing
+Each section is modeled in a corresponding dataclass.  These can be found in [richchk.model.chk](https://github.com/sethmachine/richchk/tree/master/src/richchk/model/chk).  Not all sections need to be modeled or parsed for the decoding to work.  If a section is not currently modeled, then its unparsed bytes are wrapped by a special [DecodedUnknownSection](https://github.com/sethmachine/richchk/blob/master/src/richchk/model/chk/unknown/decoded_unknown_section.py) handler.  These sections can be safely ignored while still being able to read and edit the parsed sections.   For my use case, I chose to initially only model all the sections needed to edit Triggers.  
 
-### Immutability
+The `DecodedChk` is still just a wrapper around the binary CHK format in Python objects, and is not meant to be editable.  Thus, a higher level of abstraction is needed to facilitate editing CHK data.  This is where the [RichChk](https://github.com/sethmachine/richchk/blob/master/src/richchk/model/richchk/rich_chk.py#L24) class is introduced.  Just as the `DecodedChk` contains all the binary CHK sections of a map file, the `RichChk` contains all the corresponding rich CHK sections, or more specifically a list of [RichChkSection](https://github.com/sethmachine/richchk/blob/master/src/richchk/model/richchk/rich_chk_section.py).  Compare the trigger models in [richchk.model.richchk.trig](https://github.com/sethmachine/richchk/tree/master/src/richchk/model/richchk/trig) to the lower level models in [richchk.model.chk.trig](https://github.com/sethmachine/richchk/tree/master/src/richchk/model/chk/trig).  The former has a plentiful taxonomy of classes and enums modeling how a human would understand and create triggers, while the latter is just a wrapper around the compact binary format triggers are stored in.
 
-### Functional programming
 
-## Existing mapping tools
+### Writing CHK data
 
-Also see: https://scmscx.com/map/gRdD9yb8 
+Writing CHK data is more difficult than reading it, because each CHK section may reference data found in other CHK sections as IDs, array indices, or even byte offsets!  For example, all string data (the name of units, locations, messages displayed to players, etc.) is stored in the [STR section](http://www.staredit.net/wiki/index.php/Scenario.chk#.22STR_.22_-_String_Data) as sequences of characters.  For a section like [UNIS](http://www.staredit.net/wiki/index.php/Scenario.chk#.22UNIS.22_-_Unit_Settings) that is used to rename a unit, the new unit name itself must be a reference to an existing string in the STR by its array index.  Thus, introducing a new unit name requires editing two different sections, the STR and the UNIS.  This would be quite cumbersome for a human to manually update the STR section, track its position, and then use that index as a reference in the actual unit name.  Even more difficult would be to delete referenced data or update/insert in place, as these operations could potentially require shifting every all other sections' data.
 
-RichChk diagram: https://lucid.app/lucidchart/1c68933a-2a30-4199-bd1e-e7ee77a178e5/edit?viewport_loc=-1682%2C2456%2C3022%2C1753%2C0_0&invitationId=inv_967bc678-1fc2-4980-8308-480e27f117f9 
+Just as the [ChkIo](https://github.com/sethmachine/richchk/blob/master/src/richchk/io/chk/chk_io.py) iterates over each binary CHK section and parses it into its corresponding `DecodedChkSection` to output a `DecodedChk` object, the [RichCkIo](https://github.com/sethmachine/richchk/blob/master/src/richchk/io/chk/chk_io.py) class does the same, except it operates on a `DecodedChk` object.  It processes each `DecodedChkSection` and parses it into its corresponding [RichChkSection](https://github.com/sethmachine/richchk/blob/master/src/richchk/model/richchk/rich_chk_section.py).  Each `RichChkSection` has its own specialized [RichChkSectionTranscoder](https://github.com/sethmachine/richchk/blob/master/src/richchk/transcoder/richchk/richchk_section_transcoder.py), which knows to decode a `DecodedChkSection` and how to encode back into that representation.  E.g. the [RichChkMrgnTranscoder](https://github.com/sethmachine/richchk/blob/master/src/richchk/transcoder/richchk/transcoders/richchk_mrgn_transcoder.py) is used for reading location data into an editable and human readable representation.  
 
-The traditional way to edit maps and create custom games are using a visual GUI program.  The two most popular are StarEdit (Blizzard's own official editor, but now deprecated) and [ScmDraft 2](http://www.stormcoast-fortress.net/cntt/software/scmdraft).  These programs are a great way to create the visuals of a map: the terrain, precise unit placements, locations data (used to identify unique regions in the map), etc.  But they are not good for creating [Triggers](http://classic.battle.net/scc/faq/triggers.shtml), the business logic and "code" of a custom game.  They require using a painstaking visual UI which has no notion of higher level programming primitives like variables or referencing other trigger/map data.  Further, there is no way to organize or logically group triggers; they can only be viewed based on the player they execute for.  
+This outputs a [RichChk](https://github.com/sethmachine/richchk/blob/master/src/richchk/model/richchk/rich_chk.py) object.  This class has a list containing a mix of both `RichChkSection` and `DecodedChkSection` objects.  In general, for sections that are not known or which do not have a useful editable representation (e.g. the STR section), these are left as `DecodedChkSection` objects.  
 
-ScmDraft 2 attempted to address shortcomings by providing a text based trigger editor, but this now requires external tools to properly write these triggers, and a manual way to copy and paste them into the map.  That also does not address the metaprogramming issue--once a map goes to any significant complexity, it becomes a Herculean task to maintain and update the map.  There is no way to easily search the triggers since ScmDraft 2 only provided a text based format to enter triggers, but all the same problems remain.  
+To now edit CHK data, it is necessary to use specialized editor classes for each section that is being updated.  For example, to add new triggers (represented in [RichTrigSection](https://github.com/sethmachine/richchk/blob/master/src/richchk/model/richchk/trig/rich_trig_section.py), one would use the [RichTrigEditor](https://github.com/sethmachine/richchk/blob/master/src/richchk/editor/richchk/rich_trig_editor.py).  This editor knows how to add new triggers, and outputs a brand new  `RichTrigSection` (importantly, **it does not modify its input!**).  With the updated TRIG section, a new CHK can be produced by replacing the old TRIG section with the new one using [RichChkEditor](https://github.com/sethmachine/richchk/blob/master/src/richchk/editor/richchk/rich_chk_editor.py), which outputs an entirely new CHK (again, not modifying any of its inputs).  
 
-[insert image of SCMDraft]
-[image of ]
+Finally, when encoding the rich representation back to its binary CHK format, contextual data is gathered across all CHK sections.  This includes string data, location data, and any other data that is represented as references and not inlined in the CHK format.  This context is represented as the [RichChkEncodeContext](https://github.com/sethmachine/richchk/blob/master/src/richchk/model/richchk/richchk_encode_context.py), which all transcoders have access to.  This allows turning raw strings into IDs to back into the binary CHK format.  There is also a mirrored context when going from `DecodedChk` to `RichChk` called the [RichChkDecodeContext](https://github.com/sethmachine/richchk/blob/master/src/richchk/model/richchk/richchk_decode_context.py).  
 
-On top of ScmDraft 2, the StarCraft map making community has periodically released its own tools to improve creating triggers.  Some of the most popular tools include [LangUMS](https://github.com/LangUMS/langums), [TriGen](http://www.staredit.net/topic/17244/), [Oreo Triggers](http://www.staredit.net/topic/15156/), [ProTRG](http://www.staredit.net/topic/9581/), [LIT](http://www.staredit.net/topic/16432/), and [Macro Triggers](http://www.staredit.net/topic/2970/). Besides LangUMS, these tools act as text based trigger pre-processors, allowing mapmakers to create triggers in a high level text based format or even coding language (e.g. Python for TriGen, PHP for Oreo Triggers, Lua for LIT, etc.).  But, these tools are just pre-processors.  They cannot edit a StarCraft map directly and instead produce a text based output that must be manually copy and pasted into the ScmDraft 2 trigger editor.  Another drawback of these tools is that many of the authors have not made these tools open source.  This is problematic for a number of reasons: inevitably the authors may stop maintaining the projects, the community cannot themselves makes fixes or re-build the tools for new or different operating systems (e.g. macOS), and the tools may inevitably break as StarCraft receives any updates.  Yet another issue is that without open sourcing the code, others cannot learn, gatekeeping valuable knowledge of the internals of StarCraft map making and modding.  These are some my largest criticisms of existing mapping tools, and why I have made RichChk 100% open source and freely available.     
+The actual writing back to a playable map file is done through the [StarCraftMpqIo](https://github.com/sethmachine/richchk/blob/master/src/richchk/io/mpq/starcraft_mpq_io.py) class, which uses StormLib under the hood to replace the underlying CHK file with the newly updated CHK.  
+ 
+### Hello World
 
-LangUMS is perhaps the most interesting and powerful trigger editing program available but even it has several critical drawbacks: it is its own high level language built on top of C++, and not an actual modern programming language, meaning users need to essentially learn a brand new language.  Because the engine is written in C++ (and completely unrelated to the actual LangUMS scripting language), it is not transparent how to improve or update the functionality and requires expert knowledge in learning two separate subjects: C++ and the LangUMS language.  Yet another issue is that LangUMS tries to solve two different problems at once: editing a StarCraft map and providing a higher level framework on top of StarCraft.  By conflating those together, it prevents map makers from having full transparency and control in how the actual triggers are manifested.  The project also only works on trigger data, but there is high value in being able to edit static data like unit settings at the same time (e.g. so triggers could reference static data).  LangUMS is not cross platform: it only works for Windows and it is unclear if it could be used on other operating systems like macOS or Linux.  Finally, it has been 7+ years since the author (the only contributor to the entire project) has updated contributions.  These all make it a highly unlikely tool to be ever adopted outside of an academic context.   
-
-## Enter RichChk
-
-To address the key shortcomings of [existing mapping tools](#existing-mapping-tools), I created RichChk.  As stated earlier, RichChk is a Python library that allows editing the CHK directly (and any/all the data contained within it, including triggers).  RichChk does not do anything that cannot be done in any of the existing mapping tools or ScmDraft 2, but it does provide a far more ergonomic and structured way to create, update, and manage complex custom games and mapping projects.  RichChk can be thought of a massive user experience (UX) improvement for map making.  This is accomplished by provide a rich semantic model of the CHK itself with full static typing of all StarCraft concepts in the library.  And because RichChk is not a pre-processor, but a model of the CHK format, this allows going straight from Python code to an update map file without ever opening a GUI program.  No more copy and pasting triggers!  This creates a fast and responsive iteration loop for developing a map: edit Python code, update the map, test in StarCraft, and repeat.  
-
-Nonetheless, RichChk is not without its flaws.  It requires installation and knowledge of the Python programming language.  This is not a trivial requirement, but I contend that the ability to create custom maps and program are highly correlated skills, so any motivated mapmaker could learn enough Python to be productive.  Any complex mapping project would benefit immensely from moving triggers to a modern programming language and taking full advantage of version control, IDE highlighting, etc.  
-
-Below is the quintessential "Hello world!" example, show how RichChk can be used at the most basic level.  This script displays "Hello world!" to all the players when the map is played in StarCraft.  
+Putting everything together, below is the quintessential "Hello world!" example, demonstrating how RichChk can be used as a library.  This script displays "Hello world!" to all the players in the game.
 
 ```python hello_world.py
 from richchk.editor.richchk.rich_chk_editor import RichChkEditor
@@ -210,9 +250,206 @@ if __name__ == "__main__":
     )
 ```
 
-This example highlights a few key traits of RichChk:
+## Coding best practices
 
-* Data and map file immutability: editing a map is done by taking an existing map and appending new data to it.  The original map file is never meant to be modified directly.  
-* Separation of data and code: the class [RichTrigSection](https://github.com/sethmachine/richchk/blob/master/src/richchk/model/richchk/trig/rich_trig_section.py#L140) only contains data for triggers, while [RichTrigEditor](https://github.com/sethmachine/richchk/blob/master/src/richchk/editor/richchk/rich_trig_editor.py) and under the hood [RichChkTrigTranscoder](https://github.com/sethmachine/richchk/blob/master/src/richchk/transcoder/richchk/transcoders/richchk_trig_transcoder.py#L35) are responsible for reading and writing the trigger data back to the CHK format
-    * Similarly, the class [RichChk](https://github.com/sethmachine/richchk/blob/master/src/richchk/model/richchk/rich_chk.py#L24) contains all the CHK data, but does not know how to edit or update the CHK data.  This is accomplished through separate helper classes like [StarCraftMpqIo](https://github.com/sethmachine/richchk/blob/master/src/richchk/io/mpq/starcraft_mpq_io.py#L15), [RichChkIo](https://github.com/sethmachine/richchk/blob/master/src/richchk/io/richchk/richchk_io.py), and [RichChkEditor](https://github.com/sethmachine/richchk/blob/master/src/richchk/editor/richchk/rich_chk_editor.py)
-* Static typing and models for all parts of the StarCraft map: e.g. the [PlayerId](https://github.com/sethmachine/richchk/blob/master/src/richchk/model/richchk/trig/player_id.py#L9) enum provides all possible players that a trigger can affect or execute for. 
+### Unit tests
+
+RichChk has [a large suite of 200+ unit tests](https://github.com/sethmachine/richchk/tree/master/test)) that provide test coverage on nearly every behavior.  The unit tests both prove that a feature is working and guard against future regressions.  This is critical because the reading and writing of CHK data has many interdependencies--if one CHK section is handled incorrectly, this can cause a dependent section to be parsed wrong.  In addition, the CHK format is not open source and there is no official implementation to follow.  Tests can be used to catch edge cases and ensure the correct implementation of the actual format.  For example, as I've added support for additional CHK sections and have found these broke the existing tests, I've been provided a valuable signal to go back and fix the underlying implementation.  
+
+I use the [pytest](https://docs.pytest.org/en/stable/) unit test framework, due its wide documentation and ease of using fixtures.  Finally, in most cases my tests are not true unit tests, as there is almost no mocking done.  This makes writing the tests much simpler and avoids many of [the pitfalls of excessive unit test mocking](https://news.ycombinator.com/item?id=27884355).  
+
+With a large test suite, iteration is much faster and it is easier to make changes without causing a regression.  
+
+
+### Linters
+
+I use a variety of stylistic linters to make sure the code style is consistent and uniform.  This means discussions on new features and PRs are not spent on debating stylistic choices, but the actual functionality and changes themselves.  The linters include:
+
+* [isort](https://pycqa.github.io/isort/): consistent sort order of all Python imports.
+* [docformatter](https://pypi.org/project/docformatter/): consistent formatting of docstrings.
+* [flake8](https://flake8.pycqa.org/en/latest/): enforces [PEP-8](https://peps.python.org/pep-0008/) Python conventions
+* [black](https://github.com/psf/black): automatically reformats Python code to meet conventions where possible (i.e. flake8/PEP-8 rules)
+
+For local development, I use [File Watchers](https://www.jetbrains.com/help/idea/using-file-watchers.html) that run whenever code is saved, and automatically apply all the linting.  RichChk's file watchers config can be found here: https://github.com/sethmachine/richchk/blob/master/pycharm/richchk-file-watchers.xml 
+
+
+### Static typing
+
+RichChk is a statically typed Python codebase using [mypy](https://mypy-lang.org/).  While typing code in Python is optional, e.g. `my_string: str`, it vastly improves both readability, understanding how to use an existing library, and prevents bugs due to type enforcement, among many other advantages.  Static typing also is a form of documentation the code itself, which is important when providing a library that others may use. See this mypy article for discussions on static typing: [Would my project benefit from static typing?](https://mypy.readthedocs.io/en/latest/faq.html#would-my-project-benefit-from-static-typing) and why it's often a good choice.  
+
+I run mypy locally as a file watcher, so as I write code, I get warnings or hints about the static typing to make sure everything is being typed and annotated.
+
+### Protocols
+
+Related to static typing, [protocols](https://mypy.readthedocs.io/en/stable/protocols.html) can be used to define abstract interfaces and contrasts that concrete classes implement.  This can help to reduce boilerplate and repeated code, and also provide a structured model and pattern for how something is accomplished in the code.  I use this for the various CHK section transcoders--while each CHK section has its own unique binary format, the external behavior is the same for each CHK section.  Consider a `DecodedChkSection` which must do the following operations:
+
+* **decode**: Input bytes and output a specific `DecodedChkSection`
+* **encode**: Input `DecodedChkSection` and output its representation as bytes
+
+The internals of the decode and encode operations may be different between say a `DecodedStrSection` (string data) and a `DecodedMrgnSection` (location data), but the inputs of both methods are always the same (encode is typed to the section).  `ChkSectionTranscoder` implements such a protocol:
+
+```python
+_T = TypeVar("_T", bound=DecodedChkSection, contravariant=True)
+@runtime_checkable
+class ChkSectionTranscoder(Protocol[_T]):
+    def __call__(self, *args: list[Any], **kwargs: dict[str, Any]) -> Any:
+        return self
+
+    @abstractmethod
+    def decode(self, chk_section_binary_data: bytes) -> DecodedChkSection:
+        raise NotImplementedError
+
+    def encode(self, decoded_chk_section: _T, include_header: bool = True) -> bytes:
+        chk_binary_data = self._encode(decoded_chk_section)
+        if include_header:
+            return (
+                self.encode_chk_section_header(
+                    decoded_chk_section.section_name(), len(chk_binary_data)
+                )
+                + chk_binary_data
+            )
+        return chk_binary_data
+
+    @abstractmethod
+    def _encode(self, decoded_chk_section: _T) -> bytes:
+        raise NotImplementedError
+
+    @classmethod
+    def encode_chk_section_header(
+        cls, chk_section_name: Union[ChkSectionName, str], chk_binary_data_size: int
+    ) -> bytes:
+        if isinstance(chk_section_name, ChkSectionName):
+            raw_section_name: str = chk_section_name.value
+        else:
+            raw_section_name = chk_section_name
+        data: bytes = b""
+        data += struct.pack(
+            "{}s".format(len(raw_section_name)),
+            bytes(raw_section_name, _STRING_ENCODING),
+        )
+        data += struct.pack("I", chk_binary_data_size)
+        return data
+```
+
+This pattern has made it easy to add support for new CHK sections as needed, as there's a clear established pattern and contract to follow.  The less ways to accomplish something, the easier it is, since the protocol will tell you exactly what to do!  Further, mypy will help enforce the protocols during its static type checking.  
+
+### pre-commit 
+
+Tying together all the linters and mypy static type checking, I use the [pre-commit framework](https://pre-commit.com/) which can be configured to run various checks locally before allowing local Git commits.  If any of the checks fail (e.g. static type is missing, import order is wrong, etc.), pre-commit will prevent me from committing any code that doesn't meet the stylistic or static type conventions of the codebase.  This means I can never put up a pull request that has incorrect style, missing types, etc.  This runs only locally, and doesn't prevent merges to the main branch.  See the [RichChk pre-commit.yaml](https://github.com/sethmachine/richchk/blob/master/.pre-commit-config.yaml) for all the checks used.  One of the benefits here is this also avoids running any more expensive CI/CD pipelines that could be triggered on pull requests until the code passes the quick linting, type, and formatting checks.  Note that **unit tests are not usually part of pre-commit**; this should instead be part of the CI/CD pipeline that enforces unit tests passing before allowing merges.  
+
+### GitHub Actions/Workflows
+
+To enforce linting, static typing, code conventions, and unit tests passing, it is necessary to prevent merges to the main branch unless the feature branch passes all these checks.  This can be done through [GitHub Actions/Workflows](https://docs.github.com/en/actions), which trigger workloads that run on virtual machines and can execute arbitrary code.  RichChk uses the [pull request hook](https://github.com/sethmachine/richchk/blob/master/.github/workflows/pre-commit.yaml#L3) that executes whenever a pull request is made, or the PR is updated.  I use two ordered jobs: (1) run all pre-commit checks (2) and then run the unit tests, only if the pre-commit checks pass.  These workflows ensure that the main branch always has code that is statically typed, meets stylistic and code conventions, and has all tests passing.  Pull requests cannot be merged in unless all the checks pass.  See the full [RichChk GitHub Actions pre-commit.yaml](https://github.com/sethmachine/richchk/blob/master/.github/workflows/pre-commit.yaml) 
+
+
+### Cross-Platform Support
+
+RichChk is a library that is meant to be used by anyone who wants to create StarCraft custom games.  While I prefer to develop code on macOS, much of the StarCraft player base is on Windows or Linux.  Thus, it is critical to support all 3 operating systems so the library can benefit the entire community.  Amazingly, it is trivial to ensure code is cross-platform compatible  using GitHub Actions as described earlier.  In the pre-commit.yaml, there is the [matrix OS option](https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/running-variations-of-jobs-in-a-workflow), which allows re-running each job on a different operating system!  For RichChk, each job for linting, static typing, unit tests, etc. is run 3 different times on macOS, Linux, and Windows.  This means that no code can be merged in that could break compatability with the supported operating systems.  
+
+This also vastly increases the value of unit tests, as with proper coverage I can ensure that RichChk works no matter if the user is on macOS, Windows, or Linux.
+
+### Immutability
+
+Immutability is the idea that data structures cannot be modified once they are instantiated.  There are many benefits to imposing this restriction.  Key among these is locality of reasoning: passing in arguments to a function means those arguments won't be modified after the function is applied no matter what happens inside the function.  Second, making data structures immutable will encourage using the proper ways the library provides to modify these, and related to that, write code that always returns a new data structure rather than mutate an existing one.  For more discussion on why immutability is good and mutability is generally bad, checkout this article on [Risks of mutation](https://web.mit.edu/6.005/www/fa15/classes/09-immutability/#risks_of_mutation).  
+
+For Python, it's tricky to enforce true immutability, since there's no notion of private/protected fields, and anyone with savvy enough can mutate any object under the hood via functions like `__dict__` and `setattr`.  Nevertheless, there are ways to encourage treating data structures as immutable.  The ways I've done this are the following:
+
+* use `@dataclasses.dataclass(frozen=True)` for every custom object.  [Frozen](https://docs.python.org/3/library/dataclasses.html#frozen-instances) prevents directly assigning fields in the dataclass and using `setattr`.  
+* name the fields with underscore, like `_value` instead of `value` to discourage direct access.  Instead, use getters that the class may provide, like `getValue()`.  
+
+I use this pattern for all the dataclasses and objects in RichChk, as illustrated by the `DecodedStrSection`:
+
+```python
+@dataclasses.dataclass(frozen=True)
+class DecodedStrSection(DecodedChkSection):
+    _number_of_strings: int
+    _string_offsets: list[int]
+    _strings: list[str]
+
+    @classmethod
+    def section_name(cls) -> ChkSectionName:
+        return ChkSectionName.STR
+
+    @property
+    def number_of_strings(self) -> int:
+        return self._number_of_strings
+
+    @property
+    def strings_offsets(self) -> list[int]:
+        return self._string_offsets
+
+    @property
+    def strings(self) -> list[str]:
+        return self._strings
+```
+
+Note this is not full proof.  Any mutable field can be easily mutated once it's referenced, as in the case of `list` instances.  Future improvements here would be to use an immutable data structure such as `tuple`.  
+
+### Functional programming
+
+Strongly coupled with immutability is functional programming.  Here, all functions/methods always return the same output given the same inputs, they are idempotent.  Functions never modify state, whether global or mutate their inputs.  This makes them pure, and therefore much easier to reason about.  Each function is specialized to perform a single computation, output a new object, and pass it along for input to the next function.  Complex behavior is accomplished by composing many specialized functions and methods.  Finally, code is code and data is data.  In RichChk, this means all business logic is done in classes separate from the actual data structures.  A `RichChk` object does not know how to add or replace sections; this is done by the `RichChkEditor`, which knows how to replace a section and then output a brand new `RichChk` object.  
+
+Initially this may sound quite restrictive.  However the benefits can't be understated.  Like data immutability, knowing all functions are pure allows for locality of reasoning.  Whatever happens in each function call cannot affect any state, as it will only return a brand new object and not modify its inputs.  This allows for treating most method calls like blackboxes, it does not matter what goes inside.  This also simplifies unit testing and mocking if needed.  All in all, this makes code easier to reason about.  
+
+While there is no way to explicitly enforce a functional programming style in Python, I've used the following guidelines to approach this:
+
+* Data structures are read-only and cannot modify or manipulate themselves.  For each data structure that needs to be modified, I have a separate editor-like class which outputs a new data structure that is the original plus change needed. 
+* All methods/functions output a brand new object and do not modify any of the inputs.
+* There is a specialized class or method for each operation.  For example, modifying a CHK section is tied to a particular CHK editor class, e.g. use `RichTrigEditor` to add triggers or `RichWavEditor` to add sound files.  Then to create a new CHK from the modified sections, use `RichChkEditor` to produce a brand new CHK that contains the new TRIG and new WAV sections from the previous steps.   
+
+For more discussions on the value of functional programming, see [Advantages of Functional Programming](https://typeable.io/blog/2021-02-26-fp-pros.html).  
+
+## Existing tools
+
+RichChk diagram: https://lucid.app/lucidchart/1c68933a-2a30-4199-bd1e-e7ee77a178e5/edit?viewport_loc=-1682%2C2456%2C3022%2C1753%2C0_0&invitationId=inv_967bc678-1fc2-4980-8308-480e27f117f9
+
+The community has endeavored to create numerous tools to make the job of making custom games easier beyond what is provided even in the powerful ScmDraft 2 map editor.  These tools solve many different problems: [map protectors](http://www.staredit.net/topic/10081/) (preventing others from editing your game), trigger generators, [terrain generators that use wave function collapse](http://www.staredit.net/topic/18570/#4), [map databases](https://scmscx.com), etc.  Because the focus of RichChk is to ease the creation and maintenance of a custom game primarily through triggers and static settings, my survey will mostly focus on tools that aid mapmakers in writing triggers outside the GUI editor.  
+
+### Trigger generators
+
+ScmDraft 2 uses offers a text based, human readable trigger syntax that compiles to the binary [TRIG](http://www.staredit.net/wiki/index.php/Scenario.chk#.22TRIG.22_-_Triggers).  This allows for the potential of mass producing triggers via macros using another language like Python and then copy paste the results into the custom map.  Many such text based trigger preprocessors have been developed over the years:
+
+* [TriGen](http://www.staredit.net/topic/17244/): "TriGen is a program which reads [Python] ... and outputs a text file containing the generated triggers. You then copy and paste these triggers into your map on a map editor like SCMDraft."
+* [Oreo Triggers](http://www.staredit.net/topic/15156/): A PHP based trigger preprocessor like the above, except it also adds high level support for complex and repetitive concepts like EUD (used to manipulating memory directly) and Deathcounter support.  
+* [ProTRG](http://www.staredit.net/topic/9581/): "An advanced trigger creation language built on top of Python that is very useful for generating lots of SCMDraft triggers."
+* [Macro Triggers](http://www.staredit.net/topic/2970/): "A [Java based] language allowing you to specify sequence of triggers. MT is similiar to SCMD text triggers but having additional facilities for triggers duplication. The compiler processes input text files written on MacroTriggers and generates SCMD text triggers which you copy/paste into your map."
+* [LIT](http://www.staredit.net/topic/16432/): "Lua Interpreted Triggers(LIT) is a Lua library to generate text triggers. Text triggers are usable by SCMDraft 2, and Chkdraft. Lua code is written, and the LIT library of functions and objects allows a user of LIT to generate triggers en masse."
+
+These tools provide a powerful text based way for map makers to generate and maintain triggers outside of the map editor, which is a huge productivity boost, similar to how RichChk works.  All these tools do require some knowledge of a programming language like Python, Lua, or Java.  What all these tools also have in common is that they do not directly update a StarCraft map file, and instead only output text.  That text must then be manually copy and pasted into ScmDraft 2 for the map's triggers to be updated.  This is a key distinction from RichChk, which allows one to write triggers in Python and directly update a map file without ever needing to open it a GUI editor.
+
+
+### Trigger frameworks
+
+In contrast to the text based trigger generators, some developers have created entire languages or frameworks that abstract the StarCraft trigger engine.  While these have the same functionality, the abstractions provided can simplify creating maps, hide away low level details like death counter management, and even automatically optimize and re-order triggers to make the game faster.  I have only come across a single such tool, which is [LangUMS](https://github.com/LangUMS/langums): "LangUMS is an imperative programming language with C-like syntax for creating custom maps for the game StarCraft: Brood War and the 2017 StarCraft: Remastered edition."  Like RichChk, LangUMS is meant to be used alongside a GUI editor: "it supersedes the trigger functionality in editors such as SCMDraft 2 and the official StarEdit. You still have to use a map editor to make the actual map, place locations and units."  
+
+Unlike the trigger generators that use modern programming languages like Java and Python, LangUMS is its own language.  This can be a hurdle to learn a new language that can only be used for StarCraft map editing and nothing else.  Second, LangUMS does a good job of hiding some of the tedious details of writing triggers, such as offering [for-loops and variable scoping](https://github.com/LangUMS/langums?tab=readme-ov-file#language-features), though all of these would be available in the macro trigger generators by virtue of Python/Java/Lua/Php, etc.  Like RichChk, LangUMS allows for writing triggers directly to a map file without opening a GUI program.  This is a massive productivity boost, and makes it stand out from most other tools.  
+
+LangUMS is a very specialized tool that I think is an inspiration to one day create a high level framework that simplifies and speeds up the map making process.  However, I think it's too much of a hurdle to learn a domain-specific language just for creating StarCraft maps, when all this can come for free in languages like Python.  
+
+### EUDs and Modding
+
+In StarCraft triggers, there is a condition that checks for both how many deaths a player has of a specific unit, e.g. "Player 1 has suffered 10 deaths of Zerg Zergling", and a corresponding action that can modify this value, e.g. "Set deaths of Zerg Zergling to 100 for Player 1".  Both the condition and the action do not have any bounds checks on the player ID, unit ID, and amount arguments.  Using IDs not actually part of the game (e.g. Player 1000 and Unit ID 27777) leads to memory overflows, or reading memory not usually accessible via normal triggers.  This allows savvy mapmakers to manipulate almost any part of the game (and even do arbitrary code execution), creating a potentially limitless modding experience!  Such examples include reading a player's mouse position (not normally available), changing a unit's attack, or even creating brand new units!    
+
+[EUD or Extended Unit Deaths](http://www.staredit.net/topic/14226/) is the technique of reading and writing memory overflows to mod the game without requiring players to have the mods themselves.  Manipulating memory addresses is not something that humans find intuitive or readable, so the community has developed several tools to ease this process.  These include:
+
+* [euddraft](https://github.com/phu54321/euddraft): a Python library to allow using EUDs in maps
+* [eudplib](https://github.com/phu54321/eudplib): a Python library of plugins for various EUD triggers
+
+RichChk does not support EUDs, as it is outside of the scope of implementing the CHK format.  EUDs are more side effects of memory manipulation, and it is a separate art to know how to use these for map development.  Nevertheless, they are a powerful tool when needed, and one day I could see adding a plugin or support for these.    
+
+## Conclusion and next steps
+
+RichChk is a powerful Python library that allows reading and directly editing StarCraft maps without ever opening a GUI program.  I created RichChk as the existing tools did not solve my problem of needing a fast way to iterate on map development, while also taking advantage of modern coding best practices through Python.  As of today, RichChk fully models the entire TRIG section, and I have already started using it to create my own custom games.  
+
+The RichChk codebase also illustrates how to apply coding best practices: static typing, linters, pre-commit checks, unit tests, GitHub workflows, cross-platform support, protocols, functional programming, immutability etc. in order to create a consistent and maintainable codebase.  I learned a lot about both coding and Python development through creating this project, and I know I still have a lot more to learn!  
+
+There are several next steps to the project.  Key among these are:
+
+* Add support for remaining CHK sections.  There are dozens of CHK sections that are not modeled yet and these could be quite useful.  Such include [CRGB](http://www.staredit.net/wiki/index.php/Scenario.chk#.22CRGB.22_-_Remastered_Player_Colors) which allows using custom player colors (any RGB value!) and [FORC](http://www.staredit.net/wiki/index.php/Scenario.chk#.22FORC.22_-_Force_Settings) for determining player teams, among many others.  
+* Add support for specifying and detecting string encoding.  The CHK format does not specify the string encoding.  RichChk assumes it is UTF-8 by default, but this doesn't have to be true and cause the library not to work if there is an encoding mismatch.
+* Add RichChk to [pypi](https://pypi.org/).  This would allow the library to be versioned and pip installable to promote usage and ease of installation.  
+* Create a (video) tutorial on how to use RichChk and Python.  There many talented map makers who lack programming knowledge and are intimidated by the need to use a language like Python.  This serves as an unnecessary barrier, and I would like to make a detailed guide one day on how to get started here.  
+
+If you're interested in contributing, [RichChk](https://github.com/sethmachine/richchk) is open for contributions.  Most of the CHK is not modeled, so there is lots of opportunity for open source development!  
+
+

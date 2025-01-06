@@ -13,6 +13,8 @@ tags:
 
 In this article I will introduce [RichChk](https://github.com/sethmachine/richchk)--a Python library that allows editing StarCraft maps.  StarCraft maps, or custom games, can be thought of as mods built on top of the StarCraft engine that completely change the gameplay.  While this article is mostly related to StarCraft, I'll also cover how I've used coding best practices such as immutability, functional programming, static typing, unit tests, linters, and GitHub Actions/Workflows, etc. to create a maintainable codebase.  
 
+
+
 I will first give a brief history of [StarCraft and custom games](#StarCraft).  After that I will dive into RichChk: [what it is](#What-is-RichChk), [why I made it](#Why-RichChk), and [how it works](#How-RichChk-works).  I will then detail the [coding best practices](#Coding-best-practices) used for RichChk and why these are invaluable to any project.  At the very end, I will provide a [brief survey of other comparable tools](#existing-tools) that mapmakers can use.  
 
 If you're interested in diving straight into the library and how to use it, see the GitHub repo below which includes several "Hello World!" examples.  

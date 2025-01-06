@@ -410,8 +410,6 @@ For more discussions on the value of functional programming, see [Advantages of 
 
 ## Existing tools
 
-RichChk diagram: https://lucid.app/lucidchart/1c68933a-2a30-4199-bd1e-e7ee77a178e5/edit?viewport_loc=-1682%2C2456%2C3022%2C1753%2C0_0&invitationId=inv_967bc678-1fc2-4980-8308-480e27f117f9
-
 The community has endeavored to create numerous tools to make the job of making custom games easier beyond what is provided even in the powerful ScmDraft 2 map editor.  These tools solve many different problems: [map protectors](http://www.staredit.net/topic/10081/) (preventing others from editing your game), trigger generators, [terrain generators that use wave function collapse](http://www.staredit.net/topic/18570/#4), [map databases](https://scmscx.com), etc.  Because the focus of RichChk is to ease the creation and maintenance of a custom game primarily through triggers and static settings, my survey will mostly focus on tools that aid mapmakers in writing triggers outside the GUI editor.  
 
 ### Trigger generators
